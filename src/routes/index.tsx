@@ -124,7 +124,6 @@ function Index() {
               <Link
                 key={c.label}
                 to="/file"
-            search={{}}
                 search={{ category: c.label }}
                 className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-md"
               >
