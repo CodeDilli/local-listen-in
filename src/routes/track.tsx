@@ -16,7 +16,7 @@ import {
 
 export const Route = createFileRoute("/track")({
   validateSearch: (search: Record<string, unknown>) => ({
-    ref: typeof search.ref === "string" ? search.ref : undefined,
+    ref: typeof search["ref"] === "string" ? (search["ref"] as string) : undefined,
   }),
   head: () => ({
     meta: [
@@ -119,7 +119,7 @@ function TrackComplaint() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref]);
 
-  const meta = result ? STATUS_META[result.status] ?? STATUS_META.submitted : null;
+  const meta = result ? STATUS_META[result.status] ?? STATUS_META["submitted"] : null;
 
   return (
     <div className="texture-dots mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
@@ -173,7 +173,7 @@ function TrackComplaint() {
           <p className="mt-3 font-semibold text-foreground">No complaint found</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Check the code and try again, or{" "}
-            <Link to="/file" className="font-semibold text-primary underline underline-offset-2">
+            <Link to="/file" search={{}} className="font-semibold text-primary underline underline-offset-2">
               file a new complaint
             </Link>
             .
