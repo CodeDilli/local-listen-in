@@ -88,6 +88,7 @@ function SiteHeader() {
         <nav className="flex items-center gap-1 sm:gap-2">
           <Link
             to="/file"
+            search={{}}
             className="inline-flex items-center gap-1.5 rounded-md bg-civic px-3 py-2 text-sm font-semibold text-civic-foreground transition-colors hover:bg-civic/90"
           >
             <FilePlus2 className="h-4 w-4" />
@@ -96,6 +97,7 @@ function SiteHeader() {
           </Link>
           <Link
             to="/track"
+            search={{}}
             className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-navy-foreground/80 transition-colors hover:bg-navy-foreground/10 hover:text-navy-foreground"
           >
             <Search className="h-4 w-4" />
@@ -147,12 +149,12 @@ function SiteFooter() {
           </h3>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
-              <Link to="/file" className="text-navy-foreground/80 hover:text-civic">
+              <Link to="/file" search={{}} className="text-navy-foreground/80 hover:text-civic">
                 File a complaint
               </Link>
             </li>
             <li>
-              <Link to="/track" className="text-navy-foreground/80 hover:text-civic">
+              <Link to="/track" search={{}} className="text-navy-foreground/80 hover:text-civic">
                 Track complaint status
               </Link>
             </li>

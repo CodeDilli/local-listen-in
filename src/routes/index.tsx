@@ -84,6 +84,7 @@ function Index() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 to="/file"
+            search={{}}
                 className="inline-flex items-center gap-2 rounded-md bg-civic px-6 py-3 text-sm font-bold text-civic-foreground shadow-lg shadow-civic/20 transition-transform hover:-translate-y-0.5"
               >
                 <FilePlus2 className="h-4 w-4" />
@@ -91,6 +92,7 @@ function Index() {
               </Link>
               <Link
                 to="/track"
+            search={{}}
                 className="inline-flex items-center gap-2 rounded-md border border-navy-foreground/25 px-6 py-3 text-sm font-semibold text-navy-foreground transition-colors hover:bg-navy-foreground/10"
               >
                 <Search className="h-4 w-4" />
@@ -122,6 +124,7 @@ function Index() {
               <Link
                 key={c.label}
                 to="/file"
+            search={{}}
                 search={{ category: c.label }}
                 className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-md"
               >
@@ -161,6 +164,7 @@ function Index() {
           <div className="mt-12 text-center">
             <Link
               to="/file"
+            search={{}}
               className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Start now — it's free
