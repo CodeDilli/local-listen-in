@@ -15,9 +15,8 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/track")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    ref: typeof search["ref"] === "string" ? (search["ref"] as string) : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { ref?: string } =>
+    typeof search["ref"] === "string" ? { ref: search["ref"] as string } : {},
   head: () => ({
     meta: [
       { title: "Track a Complaint — CivicPulse" },

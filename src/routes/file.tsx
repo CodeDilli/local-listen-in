@@ -12,9 +12,10 @@ import {
 import { z } from "zod";
 
 export const Route = createFileRoute("/file")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    category: typeof search["category"] === "string" ? (search["category"] as string) : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { category?: string } =>
+    typeof search["category"] === "string"
+      ? { category: search["category"] as string }
+      : {},
   head: () => ({
     meta: [
       { title: "File a Complaint — CivicPulse" },
