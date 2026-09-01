@@ -14,13 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      complaints: {
+        Row: {
+          admin_notes: string | null
+          category: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string | null
+          created_at: string
+          description: string
+          id: string
+          location: string
+          reference_code: string
+          status: string
+          title: string
+          updated_at: string
+          ward: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          category: string
+          contact_email: string
+          contact_name: string
+          contact_phone?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          location: string
+          reference_code: string
+          status?: string
+          title: string
+          updated_at?: string
+          ward?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          category?: string
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          location?: string
+          reference_code?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          ward?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_reference_code: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
