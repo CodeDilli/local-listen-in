@@ -114,14 +114,13 @@ async function onSubmit(e: FormEvent) {
     setError("Could not submit your complaint. Please try again.");
   }
 }
-   {
-    if (!referenceCode) return;
-    navigator.clipboard.writeText(referenceCode).catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
 
-  if (referenceCode) {
+function copyCode() {
+  if (!referenceCode) return;
+  navigator.clipboard.writeText(referenceCode).catch(() => {});
+  setCopied(true);
+  setTimeout(() => setCopied(false), 2000);
+} 
     return (
       <div className="texture-dots mx-auto max-w-2xl px-4 py-16 sm:px-6">
         <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-lg">
