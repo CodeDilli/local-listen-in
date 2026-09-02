@@ -79,34 +79,42 @@ function FileComplaint() {
   const set = (key: keyof typeof form) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => setForm((f) => ({ ...f, [key]: e.target.value }));
-
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    const parsed = complaintSchema.safeParse(form);
-    if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Please check the form.");
-      return;
-    }
-    setSubmitting(true);
-    const ref =
-      "CMP-" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
-    const { error: dbError } = await supabase.from("complaints").insert({
-      ...parsed.data,
-      ward: parsed.data.ward || null,
-      contact_phone: parsed.data.contact_phone || null,
-      reference_code: ref,
-    });
-    setSubmitting(false);
-    if (dbError) {
-      setError("Could not submit your complaint. Please try again in a moment.");
-      return;
-    }
-    setReferenceCode(ref);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+async function onSubmit(e: FormEvent) {
+  e.preventDefault();
+  setError(null);
+  const parsed = complaintSchema.safeParse(form);
+  if (!parsed.success) {
+    setError(parsed.error.issues[0]?.message ?? "Please check the form.");
+    return;
   }
 
-  function copyCode() {
+  setSubmitting(true);
+
+  try {
+    const response = await fetch(
+      "https://script.google.com/macros/s/AKfycbxJDsGsXaOb_8R3Bb3wPvSStYV_EsB2v8Jgn07la_-wBzLB97BPrhUHt5G_Qbv0EHFaJg/exec",
+      {
+        method: "POST",
+        body: JSON.stringify(parsed.data),
+      }
+    );
+
+    const result = await response.json();
+
+    setSubmitting(false);
+
+    if (result.success) {
+      setReferenceCode(result.reference_code);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      setError("Could not submit your complaint. Please try again.");
+    }
+  } catch (err) {
+    setSubmitting(false);
+    setError("Could not submit your complaint. Please try again.");
+  }
+}
+   {
     if (!referenceCode) return;
     navigator.clipboard.writeText(referenceCode).catch(() => {});
     setCopied(true);
