@@ -12,6 +12,7 @@ import {
   ClipboardList,
   ArrowRight,
 } from "lucide-react";
+import heroImage from "../assets/tvk-vijay-rally.jpg?url";
 
 export const Route = createFileRoute("/")({
   head: () => ({
