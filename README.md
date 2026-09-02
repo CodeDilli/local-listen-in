@@ -95,20 +95,5 @@ Never commit real `.env` files. Use `.env.example` as a template. If keys were e
 
 ## License
 
-Private / All rights reserved (update as needed).
--- Enable RLS (safe even if already enabled)
-ALTER TABLE public.complaints ENABLE ROW LEVEL SECURITY;
 
--- Allow anyone (anonymous users) to insert a new complaint
-CREATE POLICY "Allow public insert"
-ON public.complaints
-FOR INSERT
-TO anon, authenticated
-WITH CHECK (true);
 
--- Allow anyone to read a complaint by reference_code (needed for tracking)
-CREATE POLICY "Allow public select by reference"
-ON public.complaints
-FOR SELECT
-TO anon, authenticated
-USING (true);
