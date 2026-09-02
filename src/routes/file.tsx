@@ -18,13 +18,13 @@ export const Route = createFileRoute("/file")({
       : {},
   head: () => ({
     meta: [
-      { title: "File a Complaint — CivicPulse" },
+      { title: "File a Complaint — TVK Sembackkam" },
       {
         name: "description",
         content:
           "Report a civic issue in your area: roads, garbage, streetlights, water, parks, or traffic. Get an instant tracking code.",
       },
-      { property: "og:title", content: "File a Complaint — CivicPulse" },
+      { property: "og:title", content: "File a Complaint — TVK Sembackkam" },
       {
         property: "og:description",
         content: "Report a civic issue in your area and get an instant tracking code.",

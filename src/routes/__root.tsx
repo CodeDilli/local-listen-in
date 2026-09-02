@@ -82,7 +82,7 @@ function SiteHeader() {
             <Landmark className="h-5 w-5" />
           </span>
           <span className="font-display text-lg tracking-tight">
-            Civic<span className="text-civic">Pulse</span>
+            TVK <span className="text-civic">SEMBAKKAM</span>
           </span>
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
@@ -119,7 +119,7 @@ function SiteFooter() {
               <Landmark className="h-5 w-5" />
             </span>
             <span className="font-display text-lg">
-              Civic<span className="text-civic">Pulse</span>
+              TVK <span className="text-civic">SEMBAKKAM</span>
             </span>
           </div>
           <p className="mt-3 max-w-xs text-sm text-navy-muted">
@@ -136,7 +136,7 @@ function SiteFooter() {
               <Phone className="h-4 w-4 text-civic" /> 1800-425-1900 (toll free)
             </li>
             <li className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-civic" /> grievances@civicpulse.city
+              <Mail className="h-4 w-4 text-civic" /> grievances@tvksembakkam.city
             </li>
             <li className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-civic" /> Mon–Sat, 9:00–18:00
@@ -162,7 +162,7 @@ function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-navy-foreground/10 py-4 text-center text-xs text-navy-muted">
-        © 2026 CivicPulse Municipal Services. A public grievance redressal initiative.
+        © 2026 TVK Sembackkam Municipal Services. A public grievance redressal initiative.
       </div>
     </footer>
   );
@@ -173,13 +173,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CivicPulse — Public Complaint Portal" },
+      { title: "TVK Sembackkam — Public Complaint Portal" },
       {
         name: "description",
         content:
           "File civic complaints in your area — potholes, garbage, streetlights, water supply — and track their resolution online.",
       },
-      { property: "og:title", content: "CivicPulse — Public Complaint Portal" },
+      { property: "og:title", content: "TVK Sembackkam — Public Complaint Portal" },
       {
         property: "og:description",
         content:

@@ -19,13 +19,13 @@ export const Route = createFileRoute("/track")({
     typeof search["ref"] === "string" ? { ref: search["ref"] as string } : {},
   head: () => ({
     meta: [
-      { title: "Track a Complaint — CivicPulse" },
+      { title: "Track a Complaint — TVK Sembackkam" },
       {
         name: "description",
         content:
           "Enter your complaint tracking code to see the live status and department updates.",
       },
-      { property: "og:title", content: "Track a Complaint — CivicPulse" },
+      { property: "og:title", content: "Track a Complaint — TVK Sembackkam" },
       {
         property: "og:description",
         content: "Check the live status of your civic complaint with your tracking code.",
