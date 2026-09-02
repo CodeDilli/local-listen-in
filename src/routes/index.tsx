@@ -16,13 +16,13 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CivicPulse — File & Track Public Complaints in Your Area" },
+      { title: "TVK Sembackkam — File & Track Public Complaints in Your Area" },
       {
         name: "description",
         content:
           "Report potholes, garbage, broken streetlights, water issues and more in your neighbourhood. Get a tracking code and follow resolution online.",
       },
-      { property: "og:title", content: "CivicPulse — File & Track Public Complaints" },
+      { property: "og:title", content: "TVK Sembackkam — File & Track Public Complaints" },
       {
         property: "og:description",
         content:
