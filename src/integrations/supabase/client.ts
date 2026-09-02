@@ -14,9 +14,10 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
     );
 
     if (init?.headers) {
-      new Headers(init.headers).forEach((value, key) => headers.set(value, key));
+      new Headers(init.headers).forEach((value, key) => headers.set(key, value));
     }
 
+    // New Supabase API keys are opaque strings, not bearer JWTs.
     if (isNewSupabaseApiKey(supabaseKey) && headers.get('Authorization') === `Bearer ${supabaseKey}`) {
       headers.delete('Authorization');
     }
@@ -74,6 +75,8 @@ function createSupabaseClient(): SupabaseClient<Database> {
 
 let _supabase: SupabaseClient<Database> | undefined;
 
+// Import the supabase client like this:
+// import { supabase } from "@/integrations/supabase/client";
 export const supabase = new Proxy({} as SupabaseClient<Database>, {
   get(_, prop, receiver) {
     if (!_supabase) _supabase = createSupabaseClient();
