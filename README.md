@@ -1,24 +1,98 @@
-# Community Connect
+# TVK Sembackkam — Public Complaint Portal
 
-Create a web public service which is used by public to file a complaint in their area
+A simple, mobile-friendly web app for residents to **file and track civic complaints** in their area (potholes, garbage, streetlights, water, parks, traffic & safety).
 
-This project was built with [Lovable](https://lovable.dev).
+No account required. Users get an instant tracking code (e.g. `CMP-1A2B3C4D`) and can check status anytime.
 
-## Build with Lovable
+Built with [Lovable](https://lovable.dev) · TanStack Start · React · Supabase · Tailwind.
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/e03626d3-8011-4e52-be79-1b049e17fb49).
+## Features
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+- **File a complaint** in under 2 minutes (title, category, description, location, contact)
+- **Instant tracking code** on successful submit
+- **Live status tracking** (Submitted → In Progress → Resolved / Rejected)
+- Department notes visible to the citizen
+- Six main categories + Other
+- Clean, accessible UI with proper SEO meta tags
 
-## Development
+## Categories
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+| Category | Examples |
+|----------|----------|
+| Roads & Potholes | Damaged roads, potholes, broken pavements |
+| Sanitation & Garbage | Uncollected waste, overflowing bins |
+| Street Lighting | Broken or flickering lights, dark spots |
+| Water & Drainage | Leaks, shortages, blocked drains |
+| Parks & Trees | Fallen trees, park upkeep |
+| Traffic & Safety | Signal faults, illegal parking, hazards |
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+## Tech Stack
+
+- **Frontend**: TanStack Start + React 19 + TypeScript
+- **Styling**: Tailwind CSS v4 + shadcn/ui components
+- **Backend / DB**: Supabase (Postgres)
+- **Forms**: Zod validation + React Hook Form patterns
+- **Routing**: File-based routes (`/`, `/file`, `/track`)
+
+## Local Development
+
+### Prerequisites
+
+- Node.js 20+
+- A Supabase project with a `complaints` table
+
+### Setup
+
+```bash
+git clone https://github.com/CodeDilli/local-listen-in.git
+cd local-listen-in
+cp .env.example .env
+# Fill in your Supabase values in .env
+npm install   # or bun install
 npm run dev
 ```
+
+Open [http://localhost:5173](http://localhost:5173).
+
+### Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run lint` | ESLint |
+| `npm run format` | Prettier |
+
+## Supabase Schema (reference)
+
+The app expects a `complaints` table roughly like:
+
+```sql
+create table complaints (
+  id uuid primary key default gen_random_uuid(),
+  reference_code text unique not null,
+  title text not null,
+  category text not null,
+  description text not null,
+  location text not null,
+  ward text,
+  contact_name text not null,
+  contact_email text not null,
+  contact_phone text,
+  status text not null default 'submitted',
+  admin_notes text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+```
+
+(Adjust RLS policies as needed for public insert + public read by `reference_code`.)
+
+## Important Security Note
+
+Never commit real `.env` files. Use `.env.example` as a template. If keys were ever pushed, rotate them in the Supabase dashboard.
+
+## License
+
+Private / All rights reserved (update as needed).
