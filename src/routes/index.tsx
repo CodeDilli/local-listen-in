@@ -12,6 +12,7 @@ import {
   ClipboardList,
   ArrowRight,
 } from "lucide-react";
+import heroImage from "../assets/tvk-vijay-rally.jpg?url";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -65,7 +66,14 @@ function Index() {
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden bg-navy text-navy-foreground">
-        <div className="texture-grid absolute inset-0" aria-hidden />
+        <img
+          src={heroImage}
+          alt="TVK Vijay addressing a public rally"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-25"
+          aria-hidden
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/90 to-navy/60" aria-hidden />
+        <div className="texture-grid absolute inset-0 opacity-40" aria-hidden />
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-civic/40 bg-civic/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-civic">
@@ -84,7 +92,7 @@ function Index() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 to="/file"
-            search={{}}
+                search={{}}
                 className="inline-flex items-center gap-2 rounded-md bg-civic px-6 py-3 text-sm font-bold text-civic-foreground shadow-lg shadow-civic/20 transition-transform hover:-translate-y-0.5"
               >
                 <FilePlus2 className="h-4 w-4" />
@@ -92,7 +100,7 @@ function Index() {
               </Link>
               <Link
                 to="/track"
-            search={{}}
+                search={{}}
                 className="inline-flex items-center gap-2 rounded-md border border-navy-foreground/25 px-6 py-3 text-sm font-semibold text-navy-foreground transition-colors hover:bg-navy-foreground/10"
               >
                 <Search className="h-4 w-4" />
