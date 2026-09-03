@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { z } from "zod";
 import { saveLocalComplaint, generateReferenceCode } from "@/lib/local-complaints";
+import leaderImage from "../assets/tvk-vijay-rally.jpg?url";
 
 export const Route = createFileRoute("/file")({
   validateSearch: (search: Record<string, unknown>): { category?: string } =>
@@ -18,16 +19,15 @@ export const Route = createFileRoute("/file")({
       : {},
   head: () => ({
     meta: [
-      { title: "File a Complaint — TVK Sembackkam" },
+      { title: "File a complaint — Vetri Sembakkam" },
       {
         name: "description",
-        content:
-          "Report a civic issue in your area: roads, garbage, streetlights, water, parks, or traffic. Get an instant tracking code.",
+        content: "Report a local issue and get a tracking code.",
       },
-      { property: "og:title", content: "File a Complaint — TVK Sembackkam" },
+      { property: "og:title", content: "File a complaint — Vetri Sembakkam" },
       {
         property: "og:description",
-        content: "Report a civic issue in your area and get an instant tracking code.",
+        content: "Report a local issue and get a tracking code.",
       },
     ],
   }),
@@ -45,22 +45,10 @@ const CATEGORIES = [
 ];
 
 const complaintSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(5, "Give the issue a short title (min 5 characters)")
-    .max(120),
+  title: z.string().trim().min(5, "Give the issue a short title (min 5 characters)").max(120),
   category: z.string().min(1, "Please choose a category"),
-  description: z
-    .string()
-    .trim()
-    .min(20, "Please describe the issue in at least 20 characters")
-    .max(2000),
-  location: z
-    .string()
-    .trim()
-    .min(5, "Please enter the location of the issue")
-    .max(200),
+  description: z.string().trim().min(20, "Please describe the issue in at least 20 characters").max(2000),
+  location: z.string().trim().min(5, "Please enter the location of the issue").max(200),
   ward: z.string().trim().max(50).optional(),
   contact_name: z.string().trim().min(2, "Please enter your name").max(100),
   contact_email: z.string().trim().email("Please enter a valid email address"),
@@ -121,10 +109,9 @@ function FileComplaint() {
           code = String(result.reference_code).toUpperCase();
         }
       } catch {
-        /* remote optional — fall through to local store */
+        /* remote optional */
       }
 
-      // Always persist locally so /track and /admin work without Supabase
       const local = saveLocalComplaint({
         reference_code: code ?? generateReferenceCode(),
         title: parsed.data.title,
@@ -161,12 +148,10 @@ function FileComplaint() {
             <CheckCircle2 className="h-9 w-9" />
           </span>
           <h1 className="font-display mt-6 text-3xl text-foreground">
-            Complaint filed successfully
+            Complaint submitted
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            Your complaint has been registered and routed to the responsible
-            department. Save this tracking code — you&apos;ll need it to check the
-            status.
+            Save this tracking code. Use it on the Track page to check status.
           </p>
           <div className="mt-6 flex items-center justify-center gap-2">
             <code className="rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 px-5 py-3 font-mono text-xl font-bold tracking-widest text-primary">
@@ -175,16 +160,14 @@ function FileComplaint() {
             <button
               type="button"
               onClick={copyCode}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
               aria-label="Copy tracking code"
             >
               <Copy className="h-4 w-4" />
             </button>
           </div>
           {copied && (
-            <p className="mt-2 text-xs font-semibold text-success">
-              Copied to clipboard
-            </p>
+            <p className="mt-2 text-xs font-semibold text-success">Copied</p>
           )}
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <button
@@ -192,15 +175,15 @@ function FileComplaint() {
               onClick={() =>
                 navigate({ to: "/track", search: { ref: referenceCode } })
               }
-              className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground"
             >
               Track this complaint
             </button>
             <Link
               to="/"
-              className="inline-flex items-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+              className="inline-flex items-center rounded-md border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground"
             >
-              Back to home
+              Home
             </Link>
           </div>
         </div>
@@ -211,16 +194,35 @@ function FileComplaint() {
   return (
     <div className="texture-dots mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
       <div className="max-w-xl">
-        <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-          <FilePlus2 className="h-3.5 w-3.5" />
-          New complaint
-        </span>
-        <h1 className="font-display mt-4 text-3xl text-foreground sm:text-4xl">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex -space-x-2">
+            <img
+              src={leaderImage}
+              alt="Thalapathy Vijay"
+              className="h-14 w-14 rounded-full border-2 border-card object-cover object-[center_15%] sm:h-16 sm:w-16"
+            />
+            <span
+              className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-card bg-primary text-sm font-bold text-primary-foreground sm:h-16 sm:w-16"
+              title="Minister Sarath"
+            >
+              S
+            </span>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Vetri · TVK Sembakkam
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Thalapathy Vijay · Minister Sarath
+            </p>
+          </div>
+        </div>
+        <h1 className="font-display text-3xl text-foreground sm:text-4xl">
           File a complaint
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Fields marked <span className="text-destructive">*</span> are required.
-          Your contact details are used only for updates about this complaint.
+          Fields with <span className="text-destructive">*</span> are required.
+          Contact details are only used for this complaint.
         </p>
       </div>
 
@@ -236,10 +238,7 @@ function FileComplaint() {
         )}
 
         <div>
-          <label
-            htmlFor="title"
-            className="mb-1.5 block text-sm font-semibold text-foreground"
-          >
+          <label htmlFor="title" className="mb-1.5 block text-sm font-semibold text-foreground">
             Issue title <span className="text-destructive">*</span>
           </label>
           <input
@@ -253,10 +252,7 @@ function FileComplaint() {
         </div>
 
         <div>
-          <label
-            htmlFor="category"
-            className="mb-1.5 block text-sm font-semibold text-foreground"
-          >
+          <label htmlFor="category" className="mb-1.5 block text-sm font-semibold text-foreground">
             Category <span className="text-destructive">*</span>
           </label>
           <select
@@ -275,16 +271,13 @@ function FileComplaint() {
         </div>
 
         <div>
-          <label
-            htmlFor="description"
-            className="mb-1.5 block text-sm font-semibold text-foreground"
-          >
+          <label htmlFor="description" className="mb-1.5 block text-sm font-semibold text-foreground">
             Describe the issue <span className="text-destructive">*</span>
           </label>
           <textarea
             id="description"
             className={inputClass + " min-h-28 resize-y"}
-            placeholder="What is the problem? Since when? How does it affect you and your neighbours?"
+            placeholder="What is the problem? Where? Since when?"
             value={form.description}
             onChange={setField("description")}
             maxLength={2000}
@@ -293,10 +286,7 @@ function FileComplaint() {
 
         <div className="grid gap-6 sm:grid-cols-2">
           <div>
-            <label
-              htmlFor="location"
-              className="mb-1.5 block text-sm font-semibold text-foreground"
-            >
+            <label htmlFor="location" className="mb-1.5 block text-sm font-semibold text-foreground">
               <span className="inline-flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5 text-primary" />
                 Location <span className="text-destructive">*</span>
@@ -312,10 +302,7 @@ function FileComplaint() {
             />
           </div>
           <div>
-            <label
-              htmlFor="ward"
-              className="mb-1.5 block text-sm font-semibold text-foreground"
-            >
+            <label htmlFor="ward" className="mb-1.5 block text-sm font-semibold text-foreground">
               Ward / Zone
             </label>
             <input
@@ -335,10 +322,7 @@ function FileComplaint() {
           </h2>
           <div className="mt-4 grid gap-6 sm:grid-cols-2">
             <div>
-              <label
-                htmlFor="contact_name"
-                className="mb-1.5 block text-sm font-semibold text-foreground"
-              >
+              <label htmlFor="contact_name" className="mb-1.5 block text-sm font-semibold text-foreground">
                 Full name <span className="text-destructive">*</span>
               </label>
               <input
@@ -351,10 +335,7 @@ function FileComplaint() {
               />
             </div>
             <div>
-              <label
-                htmlFor="contact_email"
-                className="mb-1.5 block text-sm font-semibold text-foreground"
-              >
+              <label htmlFor="contact_email" className="mb-1.5 block text-sm font-semibold text-foreground">
                 Email <span className="text-destructive">*</span>
               </label>
               <input
@@ -367,10 +348,7 @@ function FileComplaint() {
               />
             </div>
             <div className="sm:col-span-2">
-              <label
-                htmlFor="contact_phone"
-                className="mb-1.5 block text-sm font-semibold text-foreground"
-              >
+              <label htmlFor="contact_phone" className="mb-1.5 block text-sm font-semibold text-foreground">
                 Phone (optional)
               </label>
               <input
@@ -389,7 +367,7 @@ function FileComplaint() {
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
         >
           {submitting ? (
             <>
