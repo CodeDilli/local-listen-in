@@ -19,16 +19,15 @@ export const Route = createFileRoute("/track")({
     typeof search["ref"] === "string" ? { ref: search["ref"] as string } : {},
   head: () => ({
     meta: [
-      { title: "Track a Complaint — TVK Sembackkam" },
+      { title: "Track a complaint — Vetri Sembakkam" },
       {
         name: "description",
-        content:
-          "Enter your complaint tracking code to see the live status and department updates.",
+        content: "Enter your tracking code to see status and updates.",
       },
-      { property: "og:title", content: "Track a Complaint — TVK Sembackkam" },
+      { property: "og:title", content: "Track a complaint — Vetri Sembakkam" },
       {
         property: "og:description",
-        content: "Check the live status of your civic complaint with your tracking code.",
+        content: "Enter your tracking code to see status and updates.",
       },
     ],
   }),
@@ -136,15 +135,9 @@ function TrackComplaint() {
   return (
     <div className="texture-dots mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
       <div className="max-w-xl">
-        <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-          <Search className="h-3.5 w-3.5" />
-          Status lookup
-        </span>
-        <h1 className="font-display mt-4 text-3xl text-foreground sm:text-4xl">
-          Track a complaint
-        </h1>
+        <h1 className="font-display text-3xl text-foreground sm:text-4xl">Track a complaint</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Enter the tracking code you received when filing (e.g. CMP-1A2B3C4D).
+          Enter the code you got when you filed (e.g. CMP-1A2B3C4D).
         </p>
       </div>
 
@@ -170,7 +163,7 @@ function TrackComplaint() {
         <button
           type="submit"
           disabled={loading || !code.trim()}
-          className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60 sm:min-h-0"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-60 sm:min-h-0"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
           Track
@@ -185,13 +178,12 @@ function TrackComplaint() {
       )}
 
       {searched && !loading && !error && !result && (
-        <div className="mt-8 rounded-xl border border-dashed border-border bg-card p-8 text-center">
-          <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground/50" />
-          <p className="mt-3 font-semibold text-foreground">No complaint found</p>
+        <div className="mt-8 rounded-lg border border-dashed border-border bg-card p-8 text-center">
+          <p className="text-sm font-medium text-foreground">No complaint found</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Check the code and try again, or{" "}
-            <Link to="/file" search={{}} className="font-semibold text-primary underline underline-offset-2">
-              file a new complaint
+            Check the code, or{" "}
+            <Link to="/file" search={{}} className="font-semibold text-primary">
+              file a new one
             </Link>
             .
           </p>
@@ -199,7 +191,7 @@ function TrackComplaint() {
       )}
 
       {result && meta && (
-        <article className="mt-8 overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
+        <article className="mt-8 overflow-hidden rounded-xl border border-border bg-card">
           <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-secondary px-6 py-4">
             <code className="font-mono text-sm font-bold tracking-widest text-primary">
               {result.reference_code}
@@ -258,18 +250,14 @@ function TrackComplaint() {
               <div className="flex items-start gap-2">
                 <Tag className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Category
-                  </dt>
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Category</dt>
                   <dd className="mt-0.5 text-foreground">{result.category}</dd>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Location
-                  </dt>
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Location</dt>
                   <dd className="mt-0.5 text-foreground">
                     {result.location}
                     {result.ward ? ` · ${result.ward}` : ""}
@@ -279,9 +267,7 @@ function TrackComplaint() {
               <div className="flex items-start gap-2">
                 <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Filed on
-                  </dt>
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Filed on</dt>
                   <dd className="mt-0.5 text-foreground">
                     {new Date(result.created_at).toLocaleDateString(undefined, {
                       day: "numeric",
@@ -293,18 +279,14 @@ function TrackComplaint() {
               </div>
             </dl>
             <div className="mt-5">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Description
-              </h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Description</h3>
               <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-foreground/90">
                 {result.description}
               </p>
             </div>
             {result.admin_notes && (
               <div className="mt-5 rounded-lg border border-info/30 bg-info/10 px-4 py-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-info">
-                  Update from the department
-                </h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-info">Update from the department</h3>
                 <p className="mt-1 text-sm text-foreground/90">{result.admin_notes}</p>
               </div>
             )}
