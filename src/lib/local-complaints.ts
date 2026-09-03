@@ -50,10 +50,9 @@ export function generateReferenceCode(): string {
 }
 
 export function saveLocalComplaint(
-  data: Omit<LocalComplaint, "status" | "admin_notes" | "created_at" | "updated_at" | "reference_code"> &
-    {
-      reference_code?: string;
-    }
+  data: Omit<LocalComplaint, "status" | "admin_notes" | "created_at" | "updated_at" | "reference_code"> & {
+    reference_code?: string;
+  }
 ): LocalComplaint {
   const now = new Date().toISOString();
   const row: LocalComplaint = {
