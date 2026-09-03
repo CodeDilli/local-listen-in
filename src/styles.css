@@ -117,7 +117,6 @@
     height: auto;
   }
 
-  /* Comfortable tap targets on phones */
   button,
   a,
   [role="button"],
@@ -130,7 +129,7 @@
   input,
   select,
   textarea {
-    font-size: 16px; /* prevents iOS zoom on focus */
+    font-size: 16px;
   }
 
   @media (min-width: 640px) {
@@ -146,6 +145,11 @@
   .font-display {
     font-family: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
     font-weight: 800;
+  }
+  /* clean focus */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
   }
   .texture-grid {
     background-image:
