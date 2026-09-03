@@ -27,16 +27,15 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "TVK Sembakkam — Complaints" },
+      { title: "Vetri Sembakkam — Complaints" },
       {
         name: "description",
-        content:
-          "File and track civic complaints in Sembakkam — roads, garbage, lights, water, and more.",
+        content: "Vetri — file and track civic complaints in Sembakkam.",
       },
-      { property: "og:title", content: "TVK Sembakkam — Complaints" },
+      { property: "og:title", content: "Vetri Sembakkam — Complaints" },
       {
         property: "og:description",
-        content: "File and track civic complaints in Sembakkam.",
+        content: "Vetri — file and track civic complaints in Sembakkam.",
       },
     ],
   }),
@@ -105,15 +104,15 @@ function Index() {
         <img
           src={heroImage}
           alt=""
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-25"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-30 lg:hidden"
           aria-hidden
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/90 to-navy/60" aria-hidden />
+        <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/95 to-navy/80 lg:to-navy/90" aria-hidden />
         <div className="texture-grid absolute inset-0 opacity-40" aria-hidden />
-        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-          <div className="max-w-2xl">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-2 lg:py-24">
+          <div className="max-w-xl">
             <p className="text-xs font-semibold uppercase tracking-wider text-civic">
-              TVK Sembakkam
+              Vetri · TVK Sembakkam
             </p>
             <h1 className="font-display mt-4 text-3xl leading-tight sm:text-4xl lg:text-5xl">
               File a civic complaint.
@@ -141,6 +140,16 @@ function Index() {
                 Track status
               </Link>
             </div>
+          </div>
+          <div className="relative hidden lg:block">
+            <div className="overflow-hidden rounded-2xl border border-navy-foreground/15 shadow-2xl">
+              <img
+                src={heroImage}
+                alt="Thalapathy Vijay"
+                className="aspect-[16/10] w-full object-cover object-center"
+              />
+            </div>
+            <p className="mt-2 text-center text-xs text-navy-muted">Thalapathy Vijay</p>
           </div>
         </div>
       </section>
