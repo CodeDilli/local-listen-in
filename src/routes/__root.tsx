@@ -76,31 +76,31 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-navy-foreground/10 bg-navy text-navy-foreground">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link to="/" className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-civic text-civic-foreground">
+      <div className="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-2 px-3 py-2 sm:min-h-16 sm:px-6">
+        <Link to="/" className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-civic text-civic-foreground">
             <Landmark className="h-5 w-5" />
           </span>
-          <span className="font-display text-lg tracking-tight">
+          <span className="font-display truncate text-base tracking-tight sm:text-lg">
             TVK <span className="text-civic">SEMBAKKAM</span>
           </span>
         </Link>
-        <nav className="flex items-center gap-1 sm:gap-2">
+        <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
           <Link
             to="/file"
             search={{}}
-            className="inline-flex items-center gap-1.5 rounded-md bg-civic px-3 py-2 text-sm font-semibold text-civic-foreground transition-colors hover:bg-civic/90"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-md bg-civic px-3 py-2 text-sm font-semibold text-civic-foreground transition-colors hover:bg-civic/90"
           >
-            <FilePlus2 className="h-4 w-4" />
+            <FilePlus2 className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">File a Complaint</span>
             <span className="sm:hidden">File</span>
           </Link>
           <Link
             to="/track"
             search={{}}
-            className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-navy-foreground/80 transition-colors hover:bg-navy-foreground/10 hover:text-navy-foreground"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-navy-foreground/80 transition-colors hover:bg-navy-foreground/10 hover:text-navy-foreground"
           >
-            <Search className="h-4 w-4" />
+            <Search className="h-4 w-4 shrink-0" />
             Track
           </Link>
         </nav>
