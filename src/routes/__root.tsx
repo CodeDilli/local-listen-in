@@ -20,14 +20,14 @@ function NotFoundComponent() {
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          This page does not exist.
         </p>
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
           >
-            Go home
+            Home
           </Link>
         </div>
       </div>
@@ -45,27 +45,23 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
-        </p>
+        <h1 className="text-xl font-semibold text-foreground">Something went wrong</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Try again or go home.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
           >
             Try again
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground"
           >
-            Go home
+            Home
           </a>
         </div>
       </div>
@@ -89,7 +85,7 @@ function SiteHeader() {
           <Link
             to="/file"
             search={{}}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-md bg-civic px-3 py-2 text-sm font-semibold text-civic-foreground transition-colors hover:bg-civic/90"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-md bg-civic px-3 py-2 text-sm font-semibold text-civic-foreground"
           >
             <FilePlus2 className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">File a Complaint</span>
@@ -98,7 +94,7 @@ function SiteHeader() {
           <Link
             to="/track"
             search={{}}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-navy-foreground/80 transition-colors hover:bg-navy-foreground/10 hover:text-navy-foreground"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-navy-foreground/80"
           >
             <Search className="h-4 w-4 shrink-0" />
             Track
@@ -123,8 +119,7 @@ function SiteFooter() {
             </span>
           </div>
           <p className="mt-3 max-w-xs text-sm text-navy-muted">
-            The city's public grievance portal. Report civic issues in your
-            neighbourhood and track their resolution.
+            File and track local civic complaints for Sembakkam.
           </p>
         </div>
         <div>
@@ -133,7 +128,7 @@ function SiteFooter() {
           </h3>
           <ul className="mt-3 space-y-2 text-sm">
             <li className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-civic" /> 1800-425-1900 (toll free)
+              <Phone className="h-4 w-4 text-civic" /> 1800-425-1900
             </li>
             <li className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-civic" /> grievances@tvksembakkam.city
@@ -145,7 +140,7 @@ function SiteFooter() {
         </div>
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wider text-navy-muted">
-            Quick links
+            Links
           </h3>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
@@ -155,19 +150,19 @@ function SiteFooter() {
             </li>
             <li>
               <Link to="/track" search={{}} className="text-navy-foreground/80 hover:text-civic">
-                Track complaint status
+                Track status
               </Link>
             </li>
             <li>
               <Link to="/admin" className="text-navy-foreground/50 hover:text-civic">
-                Admin
+                Staff
               </Link>
             </li>
           </ul>
         </div>
       </div>
       <div className="border-t border-navy-foreground/10 py-4 text-center text-xs text-navy-muted">
-        © 2026 TVK Sembackkam Municipal Services. A public grievance redressal initiative.
+        © 2026 TVK Sembakkam
       </div>
     </footer>
   );
@@ -178,17 +173,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "TVK Sembackkam — Public Complaint Portal" },
+      { title: "TVK Sembakkam — Complaints" },
       {
         name: "description",
-        content:
-          "File civic complaints in your area — potholes, garbage, streetlights, water supply — and track their resolution online.",
+        content: "File and track civic complaints in Sembakkam.",
       },
-      { property: "og:title", content: "TVK Sembackkam — Public Complaint Portal" },
+      { property: "og:title", content: "TVK Sembakkam — Complaints" },
       {
         property: "og:description",
-        content:
-          "File civic complaints in your area and track their resolution online.",
+        content: "File and track civic complaints in Sembakkam.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
