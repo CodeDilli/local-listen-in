@@ -158,6 +158,11 @@ function SiteFooter() {
                 Track complaint status
               </Link>
             </li>
+            <li>
+              <Link to="/admin" className="text-navy-foreground/50 hover:text-civic">
+                Admin
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
