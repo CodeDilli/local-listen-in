@@ -9,7 +9,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { z } from "zod";
-import { saveLocalComplaint, generateReferenceCode } from "@/lib/local-complaints";
+import { createComplaint } from "@/lib/complaints";
 import leaderImage from "../assets/tvk-vijay-rally.jpg?url";
 
 export const Route = createFileRoute("/file")({
@@ -94,26 +94,7 @@ function FileComplaint() {
     setSubmitting(true);
 
     try {
-      let code: string | null = null;
-
-      try {
-        const response = await fetch(
-          "https://script.google.com/macros/s/AKfycbxJDsGsXaOb_8R3Bb3wPvSStYV_EsB2v8Jgn07la_-wBzLB97BPrhUHt5G_Qbv0EHFaJg/exec",
-          {
-            method: "POST",
-            body: JSON.stringify(parsed.data),
-          }
-        );
-        const result = await response.json();
-        if (result.success && result.reference_code) {
-          code = String(result.reference_code).toUpperCase();
-        }
-      } catch {
-        /* remote optional */
-      }
-
-      const local = saveLocalComplaint({
-        reference_code: code ?? generateReferenceCode(),
+      const row = await createComplaint({
         title: parsed.data.title,
         category: parsed.data.category,
         description: parsed.data.description,
@@ -124,7 +105,7 @@ function FileComplaint() {
         contact_phone: parsed.data.contact_phone || null,
       });
 
-      setReferenceCode(local.reference_code);
+      setReferenceCode(row.reference_code);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       setError("Could not submit your complaint. Please try again.");
@@ -143,13 +124,11 @@ function FileComplaint() {
   if (referenceCode) {
     return (
       <div className="texture-dots mx-auto max-w-2xl px-4 py-16 sm:px-6">
-        <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-lg">
+        <div className="rounded-xl border border-border bg-card p-6 text-center sm:p-8">
           <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/15 text-success">
             <CheckCircle2 className="h-9 w-9" />
           </span>
-          <h1 className="font-display mt-6 text-3xl text-foreground">
-            Complaint submitted
-          </h1>
+          <h1 className="font-display mt-6 text-3xl text-foreground">Complaint submitted</h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             Save this tracking code. Use it on the Track page to check status.
           </p>
@@ -160,21 +139,17 @@ function FileComplaint() {
             <button
               type="button"
               onClick={copyCode}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-card text-muted-foreground"
               aria-label="Copy tracking code"
             >
               <Copy className="h-4 w-4" />
             </button>
           </div>
-          {copied && (
-            <p className="mt-2 text-xs font-semibold text-success">Copied</p>
-          )}
+          {copied && <p className="mt-2 text-xs font-semibold text-success">Copied</p>}
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <button
               type="button"
-              onClick={() =>
-                navigate({ to: "/track", search: { ref: referenceCode } })
-              }
+              onClick={() => navigate({ to: "/track", search: { ref: referenceCode } })}
               className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground"
             >
               Track this complaint
@@ -209,26 +184,19 @@ function FileComplaint() {
             </span>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Vetri · TVK Sembakkam
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Thalapathy Vijay · Minister Sarath
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">Vetri · TVK Sembakkam</p>
+            <p className="text-sm text-muted-foreground">Thalapathy Vijay · Minister Sarath</p>
           </div>
         </div>
-        <h1 className="font-display text-3xl text-foreground sm:text-4xl">
-          File a complaint
-        </h1>
+        <h1 className="font-display text-3xl text-foreground sm:text-4xl">File a complaint</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Fields with <span className="text-destructive">*</span> are required.
-          Contact details are only used for this complaint.
+          Fields with <span className="text-destructive">*</span> are required. Contact details are only used for this complaint.
         </p>
       </div>
 
       <form
         onSubmit={onSubmit}
-        className="mt-8 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8"
+        className="mt-8 space-y-5 rounded-xl border border-border bg-card p-5 sm:space-y-6 sm:p-8"
       >
         {error && (
           <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -255,12 +223,7 @@ function FileComplaint() {
           <label htmlFor="category" className="mb-1.5 block text-sm font-semibold text-foreground">
             Category <span className="text-destructive">*</span>
           </label>
-          <select
-            id="category"
-            className={inputClass}
-            value={form.category}
-            onChange={setField("category")}
-          >
+          <select id="category" className={inputClass} value={form.category} onChange={setField("category")}>
             <option value="">Select a category…</option>
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -317,9 +280,7 @@ function FileComplaint() {
         </div>
 
         <div className="border-t border-border pt-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            Your contact details
-          </h2>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Your contact details</h2>
           <div className="mt-4 grid gap-6 sm:grid-cols-2">
             <div>
               <label htmlFor="contact_name" className="mb-1.5 block text-sm font-semibold text-foreground">
