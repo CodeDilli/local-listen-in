@@ -12,7 +12,7 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
-import { findLocalComplaint } from "@/lib/local-complaints";
+import { findComplaint } from "@/lib/complaints";
 
 export const Route = createFileRoute("/track")({
   validateSearch: (search: Record<string, unknown>): { ref?: string } =>
@@ -97,31 +97,13 @@ function TrackComplaint() {
     setError(null);
     setSearched(true);
 
-    const local = findLocalComplaint(trimmed);
-    if (local) {
-      setResult(local);
-      setLoading(false);
-      return;
-    }
-
     try {
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data, error: dbError } = await supabase
-        .from("complaints")
-        .select(
-          "reference_code, title, category, description, location, ward, status, admin_notes, created_at, updated_at"
-        )
-        .eq("reference_code", trimmed)
-        .maybeSingle();
-      setLoading(false);
-      if (dbError) {
-        setResult(null);
-        return;
-      }
-      setResult(data);
+      const row = await findComplaint(trimmed);
+      setResult(row);
     } catch {
-      setLoading(false);
       setResult(null);
+    } finally {
+      setLoading(false);
     }
   }
 
