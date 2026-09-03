@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Search,
   Loader2,
@@ -13,6 +12,7 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
+import { findLocalComplaint } from "@/lib/local-complaints";
 
 export const Route = createFileRoute("/track")({
   validateSearch: (search: Record<string, unknown>): { ref?: string } =>
@@ -53,7 +53,7 @@ const STATUS_META: Record<
   { label: string; icon: typeof CircleDashed; badge: string; step: number }
 > = {
   submitted: {
-    label: "Submitted",
+    label: "Pending",
     icon: CircleDashed,
     badge: "bg-info/15 text-info",
     step: 1,
@@ -78,7 +78,7 @@ const STATUS_META: Record<
   },
 };
 
-const STEPS = ["Submitted", "In Progress", "Resolved"];
+const STEPS = ["Pending", "In Progress", "Resolved"];
 
 const inputClass =
   "w-full rounded-md border border-input bg-card px-4 py-3 font-mono text-sm uppercase tracking-widest text-foreground placeholder:normal-case placeholder:tracking-normal placeholder:text-muted-foreground/60 focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25";
@@ -97,20 +97,35 @@ function TrackComplaint() {
     setLoading(true);
     setError(null);
     setSearched(true);
-    const { data, error: dbError } = await supabase
-      .from("complaints")
-      .select(
-        "reference_code, title, category, description, location, ward, status, admin_notes, created_at, updated_at"
-      )
-      .eq("reference_code", trimmed)
-      .maybeSingle();
-    setLoading(false);
-    if (dbError) {
-      setError("Something went wrong while looking up your complaint. Please try again.");
-      setResult(null);
+
+    // Prefer local store (works offline / without Supabase)
+    const local = findLocalComplaint(trimmed);
+    if (local) {
+      setResult(local);
+      setLoading(false);
       return;
     }
-    setResult(data);
+
+    // Optional Supabase lookup when configured
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data, error: dbError } = await supabase
+        .from("complaints")
+        .select(
+          "reference_code, title, category, description, location, ward, status, admin_notes, created_at, updated_at"
+        )
+        .eq("reference_code", trimmed)
+        .maybeSingle();
+      setLoading(false);
+      if (dbError) {
+        setResult(null);
+        return;
+      }
+      setResult(data);
+    } catch {
+      setLoading(false);
+      setResult(null);
+    }
   }
 
   useEffect(() => {
