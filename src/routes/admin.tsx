@@ -15,15 +15,16 @@ import {
   CalendarDays,
 } from "lucide-react";
 import {
-  listLocalComplaints,
-  updateLocalComplaintStatus,
+  listComplaintsForStaff,
+  updateComplaintStatus,
   isAdminLoggedIn,
   setAdminLoggedIn,
   ADMIN_PASSWORD,
   statusLabel,
-  type LocalComplaint,
+  isCloudConfigured,
+  type Complaint,
   type ComplaintStatus,
-} from "@/lib/local-complaints";
+} from "@/lib/complaints";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -63,7 +64,7 @@ function AdminPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [complaints, setComplaints] = useState<LocalComplaint[]>([]);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [filter, setFilter] = useState<string>("all");
   const [savingId, setSavingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -73,11 +74,11 @@ function AdminPage() {
   }, []);
 
   useEffect(() => {
-    if (loggedIn) refresh();
+    if (loggedIn) void refresh();
   }, [loggedIn]);
 
-  function refresh() {
-    setComplaints(listLocalComplaints());
+  async function refresh() {
+    setComplaints(await listComplaintsForStaff());
   }
 
   function handleLogin(e: FormEvent) {
@@ -97,15 +98,18 @@ function AdminPage() {
     setLoggedIn(false);
   }
 
-  function handleStatusChange(code: string, status: ComplaintStatus, notes: string) {
+  async function handleStatusChange(code: string, status: ComplaintStatus, notes: string) {
     setSavingId(code);
     setMessage(null);
-    const updated = updateLocalComplaintStatus(code, status, notes.trim() || null);
+    const updated = await updateComplaintStatus(code, status, notes.trim() || null);
     setSavingId(null);
     if (updated) {
       setMessage(`Updated ${code} → ${statusLabel(status)}`);
-      refresh();
+      await refresh();
       setTimeout(() => setMessage(null), 3000);
+    } else {
+      setMessage("Could not update. Add Supabase keys on Vercel for shared data.");
+      setTimeout(() => setMessage(null), 4000);
     }
   }
 
@@ -172,13 +176,15 @@ function AdminPage() {
         <div>
           <h1 className="font-display text-3xl text-foreground">Complaints</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Set status: Pending, In progress, Resolved, or Rejected.
+            Full details for each case. Set status: Pending → In progress → Resolved.
+            {" "}
+            {isCloudConfigured() ? "(shared database)" : "(set Supabase on Vercel for shared data)"}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={refresh}
+            onClick={() => void refresh()}
             className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground"
           >
             <RefreshCw className="h-4 w-4" />
@@ -255,7 +261,7 @@ function AdminComplaintCard({
   saving,
   onSave,
 }: {
-  complaint: LocalComplaint;
+  complaint: Complaint;
   saving: boolean;
   onSave: (code: string, status: ComplaintStatus, notes: string) => void;
 }) {
@@ -320,12 +326,17 @@ function AdminComplaintCard({
             </div>
           </div>
         </dl>
-        <p className="mt-3 whitespace-pre-line text-sm text-foreground/85">{complaint.description}</p>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Contact: {complaint.contact_name}
-          {complaint.contact_phone ? ` · ${complaint.contact_phone}` : ""}
-          {complaint.contact_email ? ` · ${complaint.contact_email}` : ""}
-        </p>
+        <div className="mt-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Description</p>
+          <p className="mt-1 whitespace-pre-line text-sm text-foreground/90">{complaint.description}</p>
+        </div>
+        {(complaint.contact_name || complaint.contact_phone || complaint.contact_email) && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            Contact: {complaint.contact_name}
+            {complaint.contact_phone ? ` · ${complaint.contact_phone}` : ""}
+            {complaint.contact_email ? ` · ${complaint.contact_email}` : ""}
+          </p>
+        )}
 
         <div className="mt-5 grid gap-3 border-t border-border pt-4 sm:grid-cols-[1fr_2fr_auto]">
           <div>
