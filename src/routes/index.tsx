@@ -19,10 +19,10 @@ import {
 } from "lucide-react";
 import heroImage from "../assets/tvk-vijay-rally.jpg?url";
 import {
-  listLocalComplaints,
+  listComplaints,
   statusLabel,
-  type LocalComplaint,
-} from "@/lib/local-complaints";
+  type Complaint,
+} from "@/lib/complaints";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,12 +30,12 @@ export const Route = createFileRoute("/")({
       { title: "Vetri Sembakkam — Complaints" },
       {
         name: "description",
-        content: "Vetri — file and track civic complaints in Sembakkam.",
+        content: "File and track civic complaints in Sembakkam.",
       },
       { property: "og:title", content: "Vetri Sembakkam — Complaints" },
       {
         property: "og:description",
-        content: "Vetri — file and track civic complaints in Sembakkam.",
+        content: "File and track civic complaints in Sembakkam.",
       },
     ],
   }),
@@ -77,11 +77,11 @@ const BADGE: Record<string, string> = {
 };
 
 function Index() {
-  const [complaints, setComplaints] = useState<LocalComplaint[]>([]);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [filter, setFilter] = useState<"all" | "resolved" | "open">("all");
 
   useEffect(() => {
-    setComplaints(listLocalComplaints());
+    void listComplaints().then(setComplaints);
   }, []);
 
   const total = complaints.length;
@@ -111,16 +111,13 @@ function Index() {
         <div className="texture-grid absolute inset-0 opacity-40" aria-hidden />
         <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-2 lg:py-24">
           <div className="max-w-xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-civic">
-              Vetri · TVK Sembakkam
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-civic">Vetri · TVK Sembakkam</p>
             <h1 className="font-display mt-4 text-3xl leading-tight sm:text-4xl lg:text-5xl">
               File a civic complaint.
               <span className="block text-civic">Track it until it is fixed.</span>
             </h1>
             <p className="mt-4 max-w-xl text-base text-navy-muted sm:text-lg">
-              Roads, garbage, streetlights, water, drainage — report local issues and
-              follow the status online.
+              Roads, garbage, streetlights, water, drainage — report local issues and follow the status online.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -158,12 +155,8 @@ function Index() {
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="font-display text-xl text-foreground sm:text-2xl">
-                Public status board
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Open numbers. Resolved work is listed below.
-              </p>
+              <h2 className="font-display text-xl text-foreground sm:text-2xl">Public status board</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Open numbers. Resolved work is listed below.</p>
             </div>
             <Link to="/track" search={{}} className="text-sm font-semibold text-primary">
               Track your code →
@@ -218,21 +211,14 @@ function Index() {
             {visible.length === 0 ? (
               <div className="mt-4 rounded-lg border border-dashed border-border bg-card p-8 text-center">
                 <p className="text-sm font-medium text-foreground">No complaints yet</p>
-                <Link
-                  to="/file"
-                  search={{}}
-                  className="mt-2 inline-flex text-sm font-semibold text-primary"
-                >
+                <Link to="/file" search={{}} className="mt-2 inline-flex text-sm font-semibold text-primary">
                   File one
                 </Link>
               </div>
             ) : (
               <ul className="mt-4 grid gap-2">
                 {visible.map((c) => (
-                  <li
-                    key={c.reference_code}
-                    className="rounded-lg border border-border bg-card p-3.5 sm:p-4"
-                  >
+                  <li key={c.reference_code} className="rounded-lg border border-border bg-card p-3.5 sm:p-4">
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
@@ -266,6 +252,9 @@ function Index() {
                             })}
                           </span>
                         </div>
+                        {c.description && (
+                          <p className="mt-2 line-clamp-2 text-sm text-foreground/80">{c.description}</p>
+                        )}
                         {c.status === "resolved" && c.admin_notes && (
                           <p className="mt-2 rounded-md bg-emerald-500/10 px-2.5 py-1.5 text-xs text-emerald-900">
                             <span className="font-semibold">Update: </span>
@@ -291,12 +280,8 @@ function Index() {
 
       <section className="texture-dots bg-background">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
-          <h2 className="font-display text-2xl text-foreground sm:text-3xl">
-            What you can report
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Pick the category that matches the issue.
-          </p>
+          <h2 className="font-display text-2xl text-foreground sm:text-3xl">What you can report</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Pick the category that matches the issue.</p>
           <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {CATEGORIES.map((c) => (
               <Link
@@ -318,9 +303,7 @@ function Index() {
 
       <section className="border-y border-border bg-secondary">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
-          <h2 className="font-display text-center text-2xl text-foreground sm:text-3xl">
-            How it works
-          </h2>
+          <h2 className="font-display text-center text-2xl text-foreground sm:text-3xl">How it works</h2>
           <div className="mt-10 grid gap-8 md:grid-cols-3">
             {STEPS.map((s) => (
               <div key={s.title} className="text-center">
