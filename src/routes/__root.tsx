@@ -19,9 +19,7 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          This page does not exist.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">This page does not exist.</p>
         <div className="mt-6">
           <Link
             to="/"
@@ -78,7 +76,7 @@ function SiteHeader() {
             <Landmark className="h-5 w-5" />
           </span>
           <span className="font-display truncate text-base tracking-tight sm:text-lg">
-            TVK <span className="text-civic">SEMBAKKAM</span>
+            VETRI <span className="text-civic">SEMBAKKAM</span>
           </span>
         </Link>
         <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
@@ -115,11 +113,11 @@ function SiteFooter() {
               <Landmark className="h-5 w-5" />
             </span>
             <span className="font-display text-lg">
-              TVK <span className="text-civic">SEMBAKKAM</span>
+              VETRI <span className="text-civic">SEMBAKKAM</span>
             </span>
           </div>
           <p className="mt-3 max-w-xs text-sm text-navy-muted">
-            File and track local civic complaints for Sembakkam.
+            Vetri — civic complaint portal for Sembakkam.
           </p>
         </div>
         <div>
@@ -162,7 +160,7 @@ function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-navy-foreground/10 py-4 text-center text-xs text-navy-muted">
-        © 2026 TVK Sembakkam
+        © 2026 Vetri · TVK Sembakkam · Built & developed by Dilli Ganesh
       </div>
     </footer>
   );
@@ -173,22 +171,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "TVK Sembakkam — Complaints" },
+      { title: "Vetri Sembakkam — Complaints" },
       {
         name: "description",
-        content: "File and track civic complaints in Sembakkam.",
+        content: "Vetri — file and track civic complaints in Sembakkam.",
       },
-      { property: "og:title", content: "TVK Sembakkam — Complaints" },
+      { property: "og:title", content: "Vetri Sembakkam — Complaints" },
       {
         property: "og:description",
-        content: "File and track civic complaints in Sembakkam.",
+        content: "Vetri — file and track civic complaints in Sembakkam.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
