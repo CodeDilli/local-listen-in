@@ -98,7 +98,6 @@ function TrackComplaint() {
     setError(null);
     setSearched(true);
 
-    // Prefer local store (works offline / without Supabase)
     const local = findLocalComplaint(trimmed);
     if (local) {
       setResult(local);
@@ -106,7 +105,6 @@ function TrackComplaint() {
       return;
     }
 
-    // Optional Supabase lookup when configured
     try {
       const { supabase } = await import("@/integrations/supabase/client");
       const { data, error: dbError } = await supabase
@@ -155,7 +153,7 @@ function TrackComplaint() {
           e.preventDefault();
           void lookup(code);
         }}
-        className="mt-8 flex gap-2"
+        className="mt-8 flex flex-col gap-2 sm:flex-row"
       >
         <input
           className={inputClass}
@@ -163,14 +161,19 @@ function TrackComplaint() {
           value={code}
           onChange={(e) => setCode(e.target.value)}
           maxLength={20}
+          autoCapitalize="characters"
+          autoCorrect="off"
+          spellCheck={false}
+          inputMode="text"
+          aria-label="Tracking code"
         />
         <button
           type="submit"
           disabled={loading || !code.trim()}
-          className="inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60 sm:min-h-0"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-          <span className="hidden sm:inline">Track</span>
+          Track
         </button>
       </form>
 
