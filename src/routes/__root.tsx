@@ -106,7 +106,7 @@ function SiteHeader() {
 function SiteFooter() {
   return (
     <footer className="border-t border-navy-foreground/10 bg-navy text-navy-foreground">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-3">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
         <div>
           <div className="flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-md bg-civic text-civic-foreground">
@@ -117,13 +117,11 @@ function SiteFooter() {
             </span>
           </div>
           <p className="mt-3 max-w-xs text-sm text-navy-muted">
-            Vetri — civic complaint portal for Sembakkam.
+            Civic complaint portal for Sembakkam.
           </p>
         </div>
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-navy-muted">
-            Helpline
-          </h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-navy-muted">Helpline</h3>
           <ul className="mt-3 space-y-2 text-sm">
             <li className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-civic" /> 1800-425-1900
@@ -137,9 +135,7 @@ function SiteFooter() {
           </ul>
         </div>
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-navy-muted">
-            Links
-          </h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-navy-muted">Links</h3>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
               <Link to="/file" search={{}} className="text-navy-foreground/80 hover:text-civic">
@@ -151,15 +147,10 @@ function SiteFooter() {
                 Track status
               </Link>
             </li>
-            <li>
-              <Link to="/admin" className="text-navy-foreground/50 hover:text-civic">
-                Staff
-              </Link>
-            </li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-navy-foreground/10 py-4 text-center text-xs text-navy-muted">
+      <div className="border-t border-navy-foreground/10 px-4 py-4 text-center text-xs leading-relaxed text-navy-muted">
         © 2026 Vetri · TVK Sembakkam · Built & developed by Dilli Ganesh
       </div>
     </footer>
@@ -174,12 +165,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Vetri Sembakkam — Complaints" },
       {
         name: "description",
-        content: "Vetri — file and track civic complaints in Sembakkam.",
+        content: "File and track civic complaints in Sembakkam.",
       },
       { property: "og:title", content: "Vetri Sembakkam — Complaints" },
       {
         property: "og:description",
-        content: "Vetri — file and track civic complaints in Sembakkam.",
+        content: "File and track civic complaints in Sembakkam.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
