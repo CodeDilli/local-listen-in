@@ -18,7 +18,13 @@ export type LocalComplaint = {
   updated_at: string;
 };
 
+export type ComplaintStatus = "submitted" | "in_progress" | "resolved" | "rejected";
+
 const STORAGE_KEY = "tvk_local_complaints";
+const ADMIN_SESSION_KEY = "tvk_admin_session";
+
+/** Default admin password — change in production or set via env later */
+export const ADMIN_PASSWORD = "admin123";
 
 function readAll(): LocalComplaint[] {
   try {
@@ -35,12 +41,24 @@ function writeAll(items: LocalComplaint[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
 }
 
+export function generateReferenceCode(): string {
+  const hex = Array.from(crypto.getRandomValues(new Uint8Array(4)))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .toUpperCase();
+  return `CMP-${hex}`;
+}
+
 export function saveLocalComplaint(
-  data: Omit<LocalComplaint, "status" | "admin_notes" | "created_at" | "updated_at">
+  data: Omit<LocalComplaint, "status" | "admin_notes" | "created_at" | "updated_at" | "reference_code"> &
+    {
+      reference_code?: string;
+    }
 ): LocalComplaint {
   const now = new Date().toISOString();
   const row: LocalComplaint = {
     ...data,
+    reference_code: (data.reference_code ?? generateReferenceCode()).toUpperCase(),
     status: "submitted",
     admin_notes: null,
     created_at: now,
@@ -48,7 +66,7 @@ export function saveLocalComplaint(
   };
   const all = readAll();
   all.unshift(row);
-  writeAll(all.slice(0, 100));
+  writeAll(all.slice(0, 200));
   try {
     localStorage.setItem(
       "tvk_last_tracking_code",
@@ -67,4 +85,51 @@ export function findLocalComplaint(referenceCode: string): LocalComplaint | null
 
 export function listLocalComplaints(): LocalComplaint[] {
   return readAll();
+}
+
+export function updateLocalComplaintStatus(
+  referenceCode: string,
+  status: ComplaintStatus,
+  adminNotes?: string | null
+): LocalComplaint | null {
+  const code = referenceCode.trim().toUpperCase();
+  const all = readAll();
+  const idx = all.findIndex((c) => c.reference_code === code);
+  if (idx < 0) return null;
+  const updated: LocalComplaint = {
+    ...all[idx],
+    status,
+    admin_notes: adminNotes !== undefined ? adminNotes : all[idx].admin_notes,
+    updated_at: new Date().toISOString(),
+  };
+  all[idx] = updated;
+  writeAll(all);
+  return updated;
+}
+
+export function isAdminLoggedIn(): boolean {
+  try {
+    return sessionStorage.getItem(ADMIN_SESSION_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setAdminLoggedIn(loggedIn: boolean) {
+  try {
+    if (loggedIn) sessionStorage.setItem(ADMIN_SESSION_KEY, "1");
+    else sessionStorage.removeItem(ADMIN_SESSION_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function statusLabel(status: string): string {
+  const map: Record<string, string> = {
+    submitted: "Pending",
+    in_progress: "In Progress",
+    resolved: "Resolved",
+    rejected: "Rejected",
+  };
+  return map[status] ?? status;
 }

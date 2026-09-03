@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, type FormEvent, type ChangeEvent } from "react";
 import {
   FilePlus2,
   Loader2,
@@ -10,6 +9,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { z } from "zod";
+import { saveLocalComplaint, generateReferenceCode } from "@/lib/local-complaints";
 
 export const Route = createFileRoute("/file")({
   validateSearch: (search: Record<string, unknown>): { category?: string } =>
@@ -45,10 +45,22 @@ const CATEGORIES = [
 ];
 
 const complaintSchema = z.object({
-  title: z.string().trim().min(5, "Give the issue a short title (min 5 characters)").max(120),
+  title: z
+    .string()
+    .trim()
+    .min(5, "Give the issue a short title (min 5 characters)")
+    .max(120),
   category: z.string().min(1, "Please choose a category"),
-  description: z.string().trim().min(20, "Please describe the issue in at least 20 characters").max(2000),
-  location: z.string().trim().min(5, "Please enter the location of the issue").max(200),
+  description: z
+    .string()
+    .trim()
+    .min(20, "Please describe the issue in at least 20 characters")
+    .max(2000),
+  location: z
+    .string()
+    .trim()
+    .min(5, "Please enter the location of the issue")
+    .max(200),
   ward: z.string().trim().max(50).optional(),
   contact_name: z.string().trim().min(2, "Please enter your name").max(100),
   contact_email: z.string().trim().email("Please enter a valid email address"),
@@ -76,51 +88,72 @@ function FileComplaint() {
   const [referenceCode, setReferenceCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const set = (key: keyof typeof form) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => setForm((f) => ({ ...f, [key]: e.target.value }));
-async function onSubmit(e: FormEvent) {
-  e.preventDefault();
-  setError(null);
-  const parsed = complaintSchema.safeParse(form);
-  if (!parsed.success) {
-    setError(parsed.error.issues[0]?.message ?? "Please check the form.");
-    return;
+  function setField(key: keyof typeof form) {
+    return (
+      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    ) => setForm((f) => ({ ...f, [key]: e.target.value }));
   }
 
-  setSubmitting(true);
-
-  try {
-    const response = await fetch(
-      "https://script.google.com/macros/s/AKfycbxJDsGsXaOb_8R3Bb3wPvSStYV_EsB2v8Jgn07la_-wBzLB97BPrhUHt5G_Qbv0EHFaJg/exec",
-      {
-        method: "POST",
-        body: JSON.stringify(parsed.data),
-      }
-    );
-
-    const result = await response.json();
-
-    setSubmitting(false);
-
-    if (result.success) {
-      setReferenceCode(result.reference_code);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      setError("Could not submit your complaint. Please try again.");
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const parsed = complaintSchema.safeParse(form);
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? "Please check the form.");
+      return;
     }
-  } catch (err) {
-    setSubmitting(false);
-    setError("Could not submit your complaint. Please try again.");
-  }
-}
 
-function copyCode() {
-  if (!referenceCode) return;
-  navigator.clipboard.writeText(referenceCode).catch(() => {});
-  setCopied(true);
-  setTimeout(() => setCopied(false), 2000);
-} 
+    setSubmitting(true);
+
+    try {
+      let code: string | null = null;
+
+      try {
+        const response = await fetch(
+          "https://script.google.com/macros/s/AKfycbxJDsGsXaOb_8R3Bb3wPvSStYV_EsB2v8Jgn07la_-wBzLB97BPrhUHt5G_Qbv0EHFaJg/exec",
+          {
+            method: "POST",
+            body: JSON.stringify(parsed.data),
+          }
+        );
+        const result = await response.json();
+        if (result.success && result.reference_code) {
+          code = String(result.reference_code).toUpperCase();
+        }
+      } catch {
+        /* remote optional — fall through to local store */
+      }
+
+      // Always persist locally so /track and /admin work without Supabase
+      const local = saveLocalComplaint({
+        reference_code: code ?? generateReferenceCode(),
+        title: parsed.data.title,
+        category: parsed.data.category,
+        description: parsed.data.description,
+        location: parsed.data.location,
+        ward: parsed.data.ward || null,
+        contact_name: parsed.data.contact_name,
+        contact_email: parsed.data.contact_email,
+        contact_phone: parsed.data.contact_phone || null,
+      });
+
+      setReferenceCode(local.reference_code);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      setError("Could not submit your complaint. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function copyCode() {
+    if (!referenceCode) return;
+    navigator.clipboard.writeText(referenceCode).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  if (referenceCode) {
     return (
       <div className="texture-dots mx-auto max-w-2xl px-4 py-16 sm:px-6">
         <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-lg">
@@ -132,7 +165,7 @@ function copyCode() {
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             Your complaint has been registered and routed to the responsible
-            department. Save this tracking code — you'll need it to check the
+            department. Save this tracking code — you&apos;ll need it to check the
             status.
           </p>
           <div className="mt-6 flex items-center justify-center gap-2">
@@ -140,6 +173,7 @@ function copyCode() {
               {referenceCode}
             </code>
             <button
+              type="button"
               onClick={copyCode}
               className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               aria-label="Copy tracking code"
@@ -148,11 +182,16 @@ function copyCode() {
             </button>
           </div>
           {copied && (
-            <p className="mt-2 text-xs font-semibold text-success">Copied to clipboard</p>
+            <p className="mt-2 text-xs font-semibold text-success">
+              Copied to clipboard
+            </p>
           )}
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <button
-              onClick={() => navigate({ to: "/track", search: { ref: referenceCode } })}
+              type="button"
+              onClick={() =>
+                navigate({ to: "/track", search: { ref: referenceCode } })
+              }
               className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Track this complaint
@@ -197,7 +236,10 @@ function copyCode() {
         )}
 
         <div>
-          <label htmlFor="title" className="mb-1.5 block text-sm font-semibold text-foreground">
+          <label
+            htmlFor="title"
+            className="mb-1.5 block text-sm font-semibold text-foreground"
+          >
             Issue title <span className="text-destructive">*</span>
           </label>
           <input
@@ -205,16 +247,24 @@ function copyCode() {
             className={inputClass}
             placeholder="e.g. Large pothole near bus stop"
             value={form.title}
-            onChange={set("title")}
+            onChange={setField("title")}
             maxLength={120}
           />
         </div>
 
         <div>
-          <label htmlFor="category" className="mb-1.5 block text-sm font-semibold text-foreground">
+          <label
+            htmlFor="category"
+            className="mb-1.5 block text-sm font-semibold text-foreground"
+          >
             Category <span className="text-destructive">*</span>
           </label>
-          <select id="category" className={inputClass} value={form.category} onChange={set("category")}>
+          <select
+            id="category"
+            className={inputClass}
+            value={form.category}
+            onChange={setField("category")}
+          >
             <option value="">Select a category…</option>
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -225,7 +275,10 @@ function copyCode() {
         </div>
 
         <div>
-          <label htmlFor="description" className="mb-1.5 block text-sm font-semibold text-foreground">
+          <label
+            htmlFor="description"
+            className="mb-1.5 block text-sm font-semibold text-foreground"
+          >
             Describe the issue <span className="text-destructive">*</span>
           </label>
           <textarea
@@ -233,14 +286,17 @@ function copyCode() {
             className={inputClass + " min-h-28 resize-y"}
             placeholder="What is the problem? Since when? How does it affect you and your neighbours?"
             value={form.description}
-            onChange={set("description")}
+            onChange={setField("description")}
             maxLength={2000}
           />
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
           <div>
-            <label htmlFor="location" className="mb-1.5 block text-sm font-semibold text-foreground">
+            <label
+              htmlFor="location"
+              className="mb-1.5 block text-sm font-semibold text-foreground"
+            >
               <span className="inline-flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5 text-primary" />
                 Location <span className="text-destructive">*</span>
@@ -251,12 +307,15 @@ function copyCode() {
               className={inputClass}
               placeholder="Street, landmark, or address"
               value={form.location}
-              onChange={set("location")}
+              onChange={setField("location")}
               maxLength={200}
             />
           </div>
           <div>
-            <label htmlFor="ward" className="mb-1.5 block text-sm font-semibold text-foreground">
+            <label
+              htmlFor="ward"
+              className="mb-1.5 block text-sm font-semibold text-foreground"
+            >
               Ward / Zone
             </label>
             <input
@@ -264,7 +323,7 @@ function copyCode() {
               className={inputClass}
               placeholder="e.g. Ward 12"
               value={form.ward}
-              onChange={set("ward")}
+              onChange={setField("ward")}
               maxLength={50}
             />
           </div>
@@ -276,7 +335,10 @@ function copyCode() {
           </h2>
           <div className="mt-4 grid gap-6 sm:grid-cols-2">
             <div>
-              <label htmlFor="contact_name" className="mb-1.5 block text-sm font-semibold text-foreground">
+              <label
+                htmlFor="contact_name"
+                className="mb-1.5 block text-sm font-semibold text-foreground"
+              >
                 Full name <span className="text-destructive">*</span>
               </label>
               <input
@@ -284,12 +346,15 @@ function copyCode() {
                 className={inputClass}
                 placeholder="Your name"
                 value={form.contact_name}
-                onChange={set("contact_name")}
+                onChange={setField("contact_name")}
                 maxLength={100}
               />
             </div>
             <div>
-              <label htmlFor="contact_email" className="mb-1.5 block text-sm font-semibold text-foreground">
+              <label
+                htmlFor="contact_email"
+                className="mb-1.5 block text-sm font-semibold text-foreground"
+              >
                 Email <span className="text-destructive">*</span>
               </label>
               <input
@@ -298,11 +363,14 @@ function copyCode() {
                 className={inputClass}
                 placeholder="you@example.com"
                 value={form.contact_email}
-                onChange={set("contact_email")}
+                onChange={setField("contact_email")}
               />
             </div>
             <div className="sm:col-span-2">
-              <label htmlFor="contact_phone" className="mb-1.5 block text-sm font-semibold text-foreground">
+              <label
+                htmlFor="contact_phone"
+                className="mb-1.5 block text-sm font-semibold text-foreground"
+              >
                 Phone (optional)
               </label>
               <input
@@ -311,7 +379,7 @@ function copyCode() {
                 className={inputClass}
                 placeholder="For SMS updates"
                 value={form.contact_phone}
-                onChange={set("contact_phone")}
+                onChange={setField("contact_phone")}
                 maxLength={20}
               />
             </div>
