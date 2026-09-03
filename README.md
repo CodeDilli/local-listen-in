@@ -10,10 +10,17 @@ Built with [Lovable](https://lovable.dev) · TanStack Start · React · Supabase
 
 - **File a complaint** in under 2 minutes (title, category, description, location, contact)
 - **Instant tracking code** on successful submit
-- **Live status tracking** (Submitted → In Progress → Resolved / Rejected)
-- Department notes visible to the citizen
+- **Track by reference** (`/track`) — paste the tracking code to see details and status
+- **Admin login** (`/admin`) — update status (Pending → In Progress → Resolved / Rejected) and add notes
+- Department notes visible to the citizen on the track page
 - Six main categories + Other
 - Clean, accessible UI with proper SEO meta tags
+
+### Admin
+
+- URL: `/admin`
+- Default password: `admin123` (change in `src/lib/local-complaints.ts` → `ADMIN_PASSWORD`)
+- Session is stored in `sessionStorage` (clears when the browser tab is closed)
 
 ## Categories
 
@@ -30,16 +37,16 @@ Built with [Lovable](https://lovable.dev) · TanStack Start · React · Supabase
 
 - **Frontend**: TanStack Start + React 19 + TypeScript
 - **Styling**: Tailwind CSS v4 + shadcn/ui components
-- **Backend / DB**: Supabase (Postgres)
-- **Forms**: Zod validation + React Hook Form patterns
-- **Routing**: File-based routes (`/`, `/file`, `/track`)
+- **Backend / DB**: Supabase (Postgres) + localStorage fallback
+- **Forms**: Zod validation
+- **Routing**: File-based routes (`/`, `/file`, `/track`, `/admin`)
 
 ## Local Development
 
 ### Prerequisites
 
 - Node.js 20+
-- A Supabase project with a `complaints` table
+- A Supabase project with a `complaints` table (optional — app works offline via localStorage)
 
 ### Setup
 
@@ -47,7 +54,7 @@ Built with [Lovable](https://lovable.dev) · TanStack Start · React · Supabase
 git clone https://github.com/CodeDilli/local-listen-in.git
 cd local-listen-in
 cp .env.example .env
-# Fill in your Supabase values in .env
+# Fill in your Supabase values in .env (optional)
 npm install   # or bun install
 npm run dev
 ```
@@ -93,7 +100,8 @@ create table complaints (
 
 Never commit real `.env` files. Use `.env.example` as a template. If keys were ever pushed, rotate them in the Supabase dashboard.
 
-## License
+Change the default admin password before any public deployment.
 
+## License
 
 
