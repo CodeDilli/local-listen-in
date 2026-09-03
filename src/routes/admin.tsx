@@ -28,7 +28,7 @@ import {
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Admin — TVK Sembakkam" },
+      { title: "Staff — Vetri Sembakkam" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -97,11 +97,7 @@ function AdminPage() {
     setLoggedIn(false);
   }
 
-  async function handleStatusChange(
-    code: string,
-    status: ComplaintStatus,
-    notes: string
-  ) {
+  function handleStatusChange(code: string, status: ComplaintStatus, notes: string) {
     setSavingId(code);
     setMessage(null);
     const updated = updateLocalComplaintStatus(code, status, notes.trim() || null);
@@ -114,9 +110,7 @@ function AdminPage() {
   }
 
   const filtered =
-    filter === "all"
-      ? complaints
-      : complaints.filter((c) => c.status === filter);
+    filter === "all" ? complaints : complaints.filter((c) => c.status === filter);
 
   const counts = {
     all: complaints.length,
@@ -129,16 +123,12 @@ function AdminPage() {
   if (!loggedIn) {
     return (
       <div className="texture-dots mx-auto flex min-h-[60vh] max-w-md flex-col justify-center px-4 py-16">
-        <div className="rounded-2xl border border-border bg-card p-8 shadow-lg">
+        <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Shield className="h-7 w-7" />
           </span>
-          <h1 className="font-display mt-5 text-center text-2xl text-foreground">
-            Admin login
-          </h1>
-          <p className="mt-2 text-center text-sm text-muted-foreground">
-            Sign in to manage complaint statuses.
-          </p>
+          <h1 className="font-display mt-5 text-center text-2xl text-foreground">Staff login</h1>
+          <p className="mt-2 text-center text-sm text-muted-foreground">Update complaint status.</p>
           <form onSubmit={handleLogin} className="mt-6 space-y-4">
             {loginError && (
               <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -156,20 +146,20 @@ function AdminPage() {
                 className={inputClass}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password"
+                placeholder="Enter password"
                 autoFocus
               />
             </div>
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
             >
               <Shield className="h-4 w-4" />
               Sign in
             </button>
           </form>
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            Default password: <code className="rounded bg-muted px-1">admin123</code>
+            Password: <code className="rounded bg-muted px-1.5 py-0.5 text-xs">admin123</code>
           </p>
         </div>
       </div>
@@ -180,20 +170,16 @@ function AdminPage() {
     <div className="texture-dots mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-            <Shield className="h-3.5 w-3.5" />
-            Admin panel
-          </span>
-          <h1 className="font-display mt-3 text-3xl text-foreground">Complaints</h1>
+          <h1 className="font-display text-3xl text-foreground">Complaints</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Update status from Pending → In Progress → Resolved.
+            Set status: Pending, In progress, Resolved, or Rejected.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={refresh}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground"
           >
             <RefreshCw className="h-4 w-4" />
             Refresh
@@ -201,7 +187,7 @@ function AdminPage() {
           <button
             type="button"
             onClick={handleLogout}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground"
           >
             <LogOut className="h-4 w-4" />
             Logout
@@ -230,10 +216,10 @@ function AdminPage() {
             key={key}
             type="button"
             onClick={() => setFilter(key)}
-            className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+            className={`rounded-full px-3.5 py-1.5 text-xs font-semibold ${
               filter === key
                 ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-secondary hover:text-foreground"
+                : "bg-muted text-muted-foreground"
             }`}
           >
             {label} ({counts[key as keyof typeof counts]})
@@ -242,18 +228,10 @@ function AdminPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="mt-10 rounded-xl border border-dashed border-border bg-card p-12 text-center">
-          <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground/50" />
-          <p className="mt-3 font-semibold text-foreground">No complaints yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            File a complaint on the public form first, then manage it here.
-          </p>
-          <Link
-            to="/file"
-            search={{}}
-            className="mt-4 inline-flex text-sm font-semibold text-primary underline underline-offset-2"
-          >
-            Go to file complaint
+        <div className="mt-8 rounded-lg border border-dashed border-border bg-card p-8 text-center">
+          <p className="text-sm font-medium text-foreground">No complaints yet</p>
+          <Link to="/file" search={{}} className="mt-2 inline-flex text-sm font-semibold text-primary">
+            File one
           </Link>
         </div>
       ) : (
@@ -293,7 +271,7 @@ function AdminComplaintCard({
   }, [complaint]);
 
   return (
-    <li className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <li className="overflow-hidden rounded-xl border border-border bg-card">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-secondary/50 px-5 py-3">
         <code className="font-mono text-sm font-bold tracking-wider text-primary">
           {complaint.reference_code}
@@ -314,18 +292,14 @@ function AdminComplaintCard({
           <div className="flex items-start gap-2">
             <Tag className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Category
-              </dt>
+              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Category</dt>
               <dd>{complaint.category}</dd>
             </div>
           </div>
           <div className="flex items-start gap-2">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Location
-              </dt>
+              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Location</dt>
               <dd>
                 {complaint.location}
                 {complaint.ward ? ` · ${complaint.ward}` : ""}
@@ -335,9 +309,7 @@ function AdminComplaintCard({
           <div className="flex items-start gap-2">
             <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Filed
-              </dt>
+              <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Filed</dt>
               <dd>
                 {new Date(complaint.created_at).toLocaleDateString(undefined, {
                   day: "numeric",
@@ -348,9 +320,7 @@ function AdminComplaintCard({
             </div>
           </div>
         </dl>
-        <p className="mt-3 whitespace-pre-line text-sm text-foreground/85">
-          {complaint.description}
-        </p>
+        <p className="mt-3 whitespace-pre-line text-sm text-foreground/85">{complaint.description}</p>
         <p className="mt-2 text-xs text-muted-foreground">
           Contact: {complaint.contact_name}
           {complaint.contact_phone ? ` · ${complaint.contact_phone}` : ""}
@@ -376,13 +346,13 @@ function AdminComplaintCard({
           </div>
           <div>
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Admin notes (visible to citizen)
+              Notes (visible to citizen)
             </label>
             <input
               className={inputClass}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Work order raised, team visiting tomorrow"
+              placeholder="e.g. Team visiting tomorrow"
             />
           </div>
           <div className="flex items-end">
@@ -390,13 +360,9 @@ function AdminComplaintCard({
               type="button"
               disabled={saving}
               onClick={() => onSave(complaint.reference_code, status, notes)}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60 sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-60 sm:w-auto"
             >
-              {saving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <CheckCircle2 className="h-4 w-4" />
-              )}
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
               Save
             </button>
           </div>
