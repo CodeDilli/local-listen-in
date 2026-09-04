@@ -162,9 +162,6 @@ function AdminPage() {
               Sign in
             </button>
           </form>
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            Password: <code className="rounded bg-muted px-1.5 py-0.5 text-xs">admin123</code>
-          </p>
         </div>
       </div>
     );
