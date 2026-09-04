@@ -124,13 +124,13 @@ function SiteFooter() {
           <h3 className="text-sm font-semibold uppercase tracking-wider text-navy-muted">Helpline</h3>
           <ul className="mt-3 space-y-2 text-sm">
             <li className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-civic" /> 1800-425-1900
+              <Phone className="h-4 w-4 text-civic" /> 7094412177
             </li>
             <li className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-civic" /> grievances@tvksembakkam.city
+              <Mail className="h-4 w-4 text-civic" /> g.dilliganesh99@gmail.com
             </li>
             <li className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-civic" /> Mon–Sat, 9:00–18:00
+              <Clock className="h-4 w-4 text-civic" /> Mon–Fri, 10:00–18:00
             </li>
           </ul>
         </div>
