@@ -229,8 +229,14 @@ export async function createComplaint(data: NewComplaint): Promise<Complaint> {
         upsertLocal(inserted as Complaint);
         return inserted as Complaint;
       }
+      console.error("[complaints] supabase insert error", error);
+      throw new Error(error?.message || "Could not save complaint to shared database.");
     } catch (e) {
-      console.warn("[complaints] supabase insert failed", e);
+      if (e instanceof Error && e.message.includes("shared database")) throw e;
+      console.error("[complaints] supabase insert failed", e);
+      throw new Error(
+        e instanceof Error ? e.message : "Could not save complaint to shared database."
+      );
     }
   }
 
@@ -323,9 +329,21 @@ export async function listComplaintsForStaff(): Promise<Complaint[]> {
         )
         .order("created_at", { ascending: false })
         .limit(200);
-      if (!error && data) cloud = data as Complaint[];
-    } catch {
-      /* fall through */
+      if (!error && data) {
+        cloud = data as Complaint[];
+      } else {
+        console.warn("[complaints] staff select failed, using public view", error);
+        const { data: pub } = await supabase
+          .from("complaints_public")
+          .select(
+            "reference_code, title, category, description, location, ward, status, admin_notes, created_at, updated_at"
+          )
+          .order("created_at", { ascending: false })
+          .limit(200);
+        if (pub) cloud = pub as Complaint[];
+      }
+    } catch (e) {
+      console.warn("[complaints] staff list error", e);
     }
   }
   const gas = await gasList();
