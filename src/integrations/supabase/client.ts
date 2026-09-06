@@ -31,14 +31,22 @@ export type SupabaseConfigStatus =
   | { ok: true }
   | { ok: false; missing: string[] };
 
+function normalizeSupabaseUrl(url: string | undefined): string | undefined {
+  if (!url) return url;
+  // Users often paste the Data API path; client needs project origin only
+  return url.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+}
+
 export function getSupabaseConfigStatus(): SupabaseConfigStatus {
-  const SUPABASE_URL = import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'];
+  const SUPABASE_URL = normalizeSupabaseUrl(
+    import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'],
+  );
   const SUPABASE_PUBLISHABLE_KEY =
     import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'];
 
   const missing: string[] = [];
   if (!SUPABASE_URL || SUPABASE_URL.includes('your-project')) missing.push('VITE_SUPABASE_URL');
-  if (!SUPABASE_PUBLISHABLE_KEY || SUPABASE_PUBLISHABLE_KEY.includes('your-')) {
+  if (!SUPABASE_PUBLISHABLE_KEY || SUPABASE_PUBLISHABLE_KEY.includes('your-') || SUPABASE_PUBLISHABLE_KEY.startsWith('http')) {
     missing.push('VITE_SUPABASE_PUBLISHABLE_KEY');
   }
 
@@ -47,7 +55,9 @@ export function getSupabaseConfigStatus(): SupabaseConfigStatus {
 }
 
 function createSupabaseClient(): SupabaseClient<Database> {
-  const SUPABASE_URL = import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'];
+  const SUPABASE_URL = normalizeSupabaseUrl(
+    import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'],
+  );
   const SUPABASE_PUBLISHABLE_KEY =
     import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'];
 
