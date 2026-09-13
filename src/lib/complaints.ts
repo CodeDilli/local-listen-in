@@ -168,7 +168,6 @@ async function gasGet(code: string): Promise<Complaint | null> {
 
 async function gasCreate(row: Complaint): Promise<Complaint | null> {
   try {
-    // Creates need a longer window than list
     const result = (await gasRequest({ action: "create", ...row }, 8000)) as {
       success?: boolean;
       reference_code?: string;
@@ -290,16 +289,11 @@ export async function createComplaint(data: NewComplaint): Promise<Complaint> {
         status: "submitted",
         admin_notes: null,
       };
-      const { data: inserted, error } = await supabase
-        .from("complaints")
-        .insert(row)
-        .select(
-          "reference_code, title, category, description, location, ward, contact_name, contact_email, contact_phone, status, admin_notes, created_at, updated_at"
-        )
-        .single();
-      if (!error && inserted) {
-        upsertLocal(inserted as Complaint);
-        return inserted as Complaint;
+      // Insert without .select() — anon cannot SELECT the full complaints table
+      const { error } = await supabase.from("complaints").insert(row);
+      if (!error) {
+        upsertLocal(local);
+        return local;
       }
       console.error("[complaints] supabase insert error", error);
       throw new Error(error?.message || "Could not save complaint to shared database.");
@@ -359,21 +353,96 @@ export async function findComplaint(referenceCode: string): Promise<Complaint | 
 }
 
 /**
- * Fast list: parallel Supabase + GAS (GAS hard-capped at 3s).
- * No sequential retry — that was causing ~10s delays on cold GAS.
+ * Push browser-only complaints up to Supabase so phone and laptop stay in sync.
+ * Safe to call often — skips rows that already exist in the cloud.
+ */
+async function syncLocalOnlyToCloud(local: Complaint[], cloud: Complaint[]): Promise<Complaint[]> {
+  if (!isCloudConfigured() || local.length === 0) return [];
+  const cloudCodes = new Set(cloud.map((c) => c.reference_code));
+  const missing = local.filter((c) => c.reference_code && !cloudCodes.has(c.reference_code));
+  if (missing.length === 0) return [];
+
+  const uploaded: Complaint[] = [];
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    for (const row of missing) {
+      try {
+        const payload = {
+          reference_code: row.reference_code,
+          title: row.title,
+          category: row.category,
+          description: row.description,
+          location: row.location,
+          ward: row.ward || null,
+          contact_name: row.contact_name || "Citizen",
+          contact_email: row.contact_email || "citizen@local.invalid",
+          contact_phone: row.contact_phone || null,
+          status: row.status || "submitted",
+          admin_notes: row.admin_notes || null,
+        };
+        // Anon cannot SELECT the full complaints table (privacy view only) —
+        // upsert without .select() and keep the local row on success.
+        const { error } = await supabase
+          .from("complaints")
+          .upsert(payload, { onConflict: "reference_code" });
+        if (!error) {
+          uploaded.push(row);
+        } else {
+          console.warn("[complaints] sync upsert failed", row.reference_code, error.message);
+        }
+      } catch (e) {
+        console.warn("[complaints] sync row error", row.reference_code, e);
+      }
+    }
+  } catch (e) {
+    console.warn("[complaints] syncLocalOnlyToCloud failed", e);
+  }
+  return uploaded;
+}
+
+/**
+ * Shared list: Supabase is source of truth when configured.
+ * Local-only rows (e.g. filed on phone) are pushed up so laptop sees them.
  */
 export async function listComplaints(): Promise<Complaint[]> {
   const cached = readLocal();
-  const [cloud, gas] = await Promise.all([fetchCloudPublic(), gasList()]);
-  const merged = mergeByCode(cloud, gas, cached);
+
+  if (isCloudConfigured()) {
+    let cloud = await fetchCloudPublic();
+    // Upload any phone/laptop-only rows so every device shares the same data
+    const uploaded = await syncLocalOnlyToCloud(cached, cloud);
+    if (uploaded.length > 0) {
+      cloud = mergeByCode(cloud, uploaded);
+    }
+    // Skip broken/slow GAS when cloud is available — keeps load fast and consistent
+    const merged = mergeByCode(cloud, cached);
+    if (merged.length > 0) writeLocal(merged);
+    return merged;
+  }
+
+  // No Supabase: fall back to GAS + local (device-specific)
+  const gas = await gasList();
+  const merged = mergeByCode(gas, cached);
   if (merged.length > 0) writeLocal(merged);
   return merged;
 }
 
 export async function listComplaintsForStaff(): Promise<Complaint[]> {
   const cached = readLocal();
-  const [cloud, gas] = await Promise.all([fetchCloudStaff(), gasList()]);
-  const merged = mergeByCode(cloud, gas, cached);
+
+  if (isCloudConfigured()) {
+    let cloud = await fetchCloudStaff();
+    const uploaded = await syncLocalOnlyToCloud(cached, cloud);
+    if (uploaded.length > 0) {
+      cloud = mergeByCode(cloud, uploaded);
+    }
+    const merged = mergeByCode(cloud, cached);
+    if (merged.length > 0) writeLocal(merged);
+    return merged;
+  }
+
+  const gas = await gasList();
+  const merged = mergeByCode(gas, cached);
   if (merged.length > 0) writeLocal(merged);
   return merged;
 }
@@ -391,17 +460,33 @@ export async function updateComplaintStatus(
       const { supabase } = await import("@/integrations/supabase/client");
       const patch: Record<string, unknown> = { status, updated_at: now };
       if (adminNotes !== undefined) patch.admin_notes = adminNotes;
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("complaints")
         .update(patch)
-        .eq("reference_code", code)
-        .select(
-          "reference_code, title, category, description, location, ward, contact_name, contact_email, contact_phone, status, admin_notes, created_at, updated_at"
-        )
-        .maybeSingle();
-      if (!error && data) {
-        upsertLocal(data as Complaint);
-        return data as Complaint;
+        .eq("reference_code", code);
+      if (!error) {
+        const all = readLocal();
+        const idx = all.findIndex((c) => c.reference_code === code);
+        const base = idx >= 0 ? all[idx] : null;
+        const updated: Complaint = {
+          ...(base ?? {
+            reference_code: code,
+            title: "",
+            category: "",
+            description: "",
+            location: "",
+            ward: null,
+            status,
+            admin_notes: adminNotes ?? null,
+            created_at: now,
+            updated_at: now,
+          }),
+          status,
+          admin_notes: adminNotes !== undefined ? adminNotes : base?.admin_notes ?? null,
+          updated_at: now,
+        };
+        upsertLocal(updated);
+        return updated;
       }
     } catch (e) {
       console.warn("[complaints] supabase update error", e);
