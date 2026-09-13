@@ -20,6 +20,7 @@ import {
 import heroImage from "../assets/tvk-vijay-rally.jpg?url";
 import {
   listComplaints,
+  getCachedComplaints,
   statusLabel,
   type Complaint,
 } from "@/lib/complaints";
@@ -77,12 +78,19 @@ const BADGE: Record<string, string> = {
 };
 
 function Index() {
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  // Show cached complaints immediately (0ms) — then refresh from network in background
+  const [complaints, setComplaints] = useState<Complaint[]>(() => getCachedComplaints());
   // Default to "open" so resolved complaints are automatically hidden from the home page
   const [filter, setFilter] = useState<"all" | "resolved" | "open">("open");
 
   useEffect(() => {
-    void listComplaints().then(setComplaints);
+    let cancelled = false;
+    void listComplaints().then((rows) => {
+      if (!cancelled) setComplaints(rows);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const total = complaints.length;
