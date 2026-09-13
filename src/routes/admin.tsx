@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import {
   listComplaintsForStaff,
+  getCachedComplaints,
   updateComplaintStatus,
   isAdminLoggedIn,
   setAdminLoggedIn,
@@ -64,10 +65,12 @@ function AdminPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  // Instant cache paint after login; network refresh fills gaps
+  const [complaints, setComplaints] = useState<Complaint[]>(() => getCachedComplaints());
   const [filter, setFilter] = useState<string>("all");
   const [savingId, setSavingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     setLoggedIn(isAdminLoggedIn());
@@ -78,7 +81,12 @@ function AdminPage() {
   }, [loggedIn]);
 
   async function refresh() {
-    setComplaints(await listComplaintsForStaff());
+    setRefreshing(true);
+    try {
+      setComplaints(await listComplaintsForStaff());
+    } finally {
+      setRefreshing(false);
+    }
   }
 
   function handleLogin(e: FormEvent) {
@@ -182,9 +190,10 @@ function AdminPage() {
           <button
             type="button"
             onClick={() => void refresh()}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground"
+            disabled={refreshing}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground disabled:opacity-60"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
           </button>
           <button
