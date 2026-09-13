@@ -38,6 +38,8 @@ export type NewComplaint = {
 
 const STORAGE_KEY = "tvk_local_complaints";
 const ADMIN_SESSION_KEY = "tvk_admin_session";
+/** GAS cold starts can take 5–10s — hard-cap so the page never waits that long */
+const GAS_TIMEOUT_MS = 3000;
 
 export const ADMIN_PASSWORD = "admin123";
 
@@ -79,6 +81,11 @@ function readLocal(): Complaint[] {
   }
 }
 
+/** Instant cache for first paint — call this in useState initializers */
+export function getCachedComplaints(): Complaint[] {
+  return readLocal();
+}
+
 function writeLocal(items: Complaint[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items.slice(0, 200)));
@@ -109,17 +116,26 @@ function mergeByCode(...lists: Complaint[][]): Complaint[] {
   );
 }
 
-async function gasRequest(body: Record<string, unknown>): Promise<unknown> {
-  const res = await fetch(GAS_URL, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(body),
-  });
-  const text = await res.text();
+async function gasRequest(body: Record<string, unknown>, timeoutMs = GAS_TIMEOUT_MS): Promise<unknown> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return JSON.parse(text);
+    const res = await fetch(GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
   } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -152,7 +168,8 @@ async function gasGet(code: string): Promise<Complaint | null> {
 
 async function gasCreate(row: Complaint): Promise<Complaint | null> {
   try {
-    const result = (await gasRequest({ action: "create", ...row })) as {
+    // Creates need a longer window than list
+    const result = (await gasRequest({ action: "create", ...row }, 8000)) as {
       success?: boolean;
       reference_code?: string;
       complaint?: Complaint;
@@ -174,17 +191,72 @@ async function gasUpdate(
   adminNotes?: string | null
 ): Promise<Complaint | null> {
   try {
-    const result = (await gasRequest({
-      action: "update",
-      reference_code: code,
-      status,
-      admin_notes: adminNotes ?? null,
-    })) as { success?: boolean; complaint?: Complaint } | null;
+    const result = (await gasRequest(
+      {
+        action: "update",
+        reference_code: code,
+        status,
+        admin_notes: adminNotes ?? null,
+      },
+      8000
+    )) as { success?: boolean; complaint?: Complaint } | null;
     if (result?.complaint) return result.complaint as Complaint;
     if (result?.success) return await gasGet(code);
     return null;
   } catch {
     return null;
+  }
+}
+
+async function fetchCloudPublic(): Promise<Complaint[]> {
+  if (!isCloudConfigured()) return [];
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data, error } = await supabase
+      .from("complaints_public")
+      .select(
+        "reference_code, title, category, description, location, ward, status, admin_notes, created_at, updated_at"
+      )
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (!error && data) return data as Complaint[];
+    const { data: rows } = await supabase
+      .from("complaints")
+      .select(
+        "reference_code, title, category, description, location, ward, status, admin_notes, created_at, updated_at"
+      )
+      .order("created_at", { ascending: false })
+      .limit(100);
+    return (rows as Complaint[]) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+async function fetchCloudStaff(): Promise<Complaint[]> {
+  if (!isCloudConfigured()) return [];
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data, error } = await supabase
+      .from("complaints")
+      .select(
+        "reference_code, title, category, description, location, ward, contact_name, contact_email, contact_phone, status, admin_notes, created_at, updated_at"
+      )
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (!error && data) return data as Complaint[];
+    console.warn("[complaints] staff select failed, using public view", error);
+    const { data: pub } = await supabase
+      .from("complaints_public")
+      .select(
+        "reference_code, title, category, description, location, ward, status, admin_notes, created_at, updated_at"
+      )
+      .order("created_at", { ascending: false })
+      .limit(200);
+    return (pub as Complaint[]) ?? [];
+  } catch (e) {
+    console.warn("[complaints] staff list error", e);
+    return [];
   }
 }
 
@@ -286,85 +358,21 @@ export async function findComplaint(referenceCode: string): Promise<Complaint | 
   return readLocal().find((c) => c.reference_code === code) ?? null;
 }
 
+/**
+ * Fast list: parallel Supabase + GAS (GAS hard-capped at 3s).
+ * No sequential retry — that was causing ~10s delays on cold GAS.
+ */
 export async function listComplaints(): Promise<Complaint[]> {
   const cached = readLocal();
-  let cloud: Complaint[] = [];
-  if (isCloudConfigured()) {
-    try {
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data, error } = await supabase
-        .from("complaints_public")
-        .select(
-          "reference_code, title, category, description, location, ward, status, admin_notes, created_at, updated_at"
-        )
-        .order("created_at", { ascending: false })
-        .limit(100);
-      if (!error && data) cloud = data as Complaint[];
-      else {
-        const { data: rows } = await supabase
-          .from("complaints")
-          .select(
-            "reference_code, title, category, description, location, ward, status, admin_notes, created_at, updated_at"
-          )
-          .order("created_at", { ascending: false })
-          .limit(100);
-        if (rows) cloud = rows as Complaint[];
-      }
-    } catch {
-      /* fall through — keep cached */
-    }
-  }
-
-  let gas = await gasList();
-  // Retry once if both remote sources came back empty (transient GAS / network)
-  if (cloud.length === 0 && gas.length === 0) {
-    await new Promise((r) => setTimeout(r, 400));
-    gas = await gasList();
-  }
-
+  const [cloud, gas] = await Promise.all([fetchCloudPublic(), gasList()]);
   const merged = mergeByCode(cloud, gas, cached);
-  // Always refresh local cache when we have data so the next page load is instant
   if (merged.length > 0) writeLocal(merged);
   return merged;
 }
 
 export async function listComplaintsForStaff(): Promise<Complaint[]> {
   const cached = readLocal();
-  let cloud: Complaint[] = [];
-  if (isCloudConfigured()) {
-    try {
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data, error } = await supabase
-        .from("complaints")
-        .select(
-          "reference_code, title, category, description, location, ward, contact_name, contact_email, contact_phone, status, admin_notes, created_at, updated_at"
-        )
-        .order("created_at", { ascending: false })
-        .limit(200);
-      if (!error && data) {
-        cloud = data as Complaint[];
-      } else {
-        console.warn("[complaints] staff select failed, using public view", error);
-        const { data: pub } = await supabase
-          .from("complaints_public")
-          .select(
-            "reference_code, title, category, description, location, ward, status, admin_notes, created_at, updated_at"
-          )
-          .order("created_at", { ascending: false })
-          .limit(200);
-        if (pub) cloud = pub as Complaint[];
-      }
-    } catch (e) {
-      console.warn("[complaints] staff list error", e);
-    }
-  }
-
-  let gas = await gasList();
-  if (cloud.length === 0 && gas.length === 0) {
-    await new Promise((r) => setTimeout(r, 400));
-    gas = await gasList();
-  }
-
+  const [cloud, gas] = await Promise.all([fetchCloudStaff(), gasList()]);
   const merged = mergeByCode(cloud, gas, cached);
   if (merged.length > 0) writeLocal(merged);
   return merged;
