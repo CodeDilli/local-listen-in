@@ -78,7 +78,8 @@ const BADGE: Record<string, string> = {
 
 function Index() {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
-  const [filter, setFilter] = useState<"all" | "resolved" | "open">("all");
+  // Default to "open" so resolved complaints are automatically hidden from the home page
+  const [filter, setFilter] = useState<"all" | "resolved" | "open">("open");
 
   useEffect(() => {
     void listComplaints().then(setComplaints);
@@ -94,6 +95,7 @@ function Index() {
     .filter((c) => {
       if (filter === "resolved") return c.status === "resolved";
       if (filter === "open") return c.status === "submitted" || c.status === "in_progress";
+      // filter === "all" → show everything (including resolved)
       return true;
     })
     .slice(0, 12);
@@ -156,7 +158,9 @@ function Index() {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="font-display text-xl text-foreground sm:text-2xl">Public status board</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Open numbers. Resolved work is listed below.</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Open numbers. Resolved complaints are removed from this list automatically — use Track or the Resolved filter to view them.
+              </p>
             </div>
             <Link to="/track" search={{}} className="text-sm font-semibold text-primary">
               Track your code →
