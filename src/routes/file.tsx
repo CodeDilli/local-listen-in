@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { z } from "zod";
 import { createComplaint } from "@/lib/complaints";
-import leaderImage from "../assets/tvk-vijay-rally.jpg?url";
+import { brandLogoDataUrl } from "../assets/brand-logo";
 
 export const Route = createFileRoute("/file")({
   validateSearch: (search: Record<string, unknown>): { category?: string } =>
@@ -170,22 +170,14 @@ function FileComplaint() {
     <div className="texture-dots mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
       <div className="max-w-xl">
         <div className="mb-5 flex items-center gap-3">
-          <div className="flex -space-x-2">
-            <img
-              src={leaderImage}
-              alt="Thalapathy Vijay"
-              className="h-14 w-14 rounded-full border-2 border-card object-cover object-[center_15%] sm:h-16 sm:w-16"
-            />
-            <span
-              className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-card bg-primary text-sm font-bold text-primary-foreground sm:h-16 sm:w-16"
-              title="Minister Sarath"
-            >
-              S
-            </span>
-          </div>
+          <img
+            src={brandLogoDataUrl}
+            alt="CM of Tamil Nadu"
+            className="h-14 w-14 shrink-0 rounded-full border-2 border-card object-cover object-top sm:h-16 sm:w-16"
+          />
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">Vetri · TVK Sembakkam</p>
-            <p className="text-sm text-muted-foreground">Thalapathy Vijay · Minister Sarath</p>
+            <p className="text-sm text-muted-foreground">CM of Tamil Nadu · M.K. Stalin</p>
           </div>
         </div>
         <h1 className="font-display text-3xl text-foreground sm:text-4xl">File a complaint</h1>
