@@ -17,7 +17,7 @@ import {
   MapPin,
   Tag,
 } from "lucide-react";
-import heroImage from "../assets/tvk-vijay-rally.jpg?url";
+import { heroPortraitDataUrl as heroImage } from "../assets/hero-portrait";
 import {
   listComplaints,
   getCachedComplaints,
@@ -111,29 +111,37 @@ function Index() {
   return (
     <div>
       <section className="relative overflow-hidden bg-navy text-navy-foreground">
+        {/* Full-bleed portrait background (all screen sizes) */}
         <img
           src={heroImage}
           alt=""
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-30 lg:hidden"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[center_20%]"
           aria-hidden
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/95 to-navy/80 lg:to-navy/90" aria-hidden />
-        <div className="texture-grid absolute inset-0 opacity-40" aria-hidden />
-        <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-2 lg:py-24">
+        {/* Red wash so text stays readable over the photo */}
+        <div
+          className="absolute inset-0 bg-gradient-to-r from-navy/95 via-navy/85 to-navy/55"
+          aria-hidden
+        />
+        <div className="texture-grid absolute inset-0 opacity-30" aria-hidden />
+        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
           <div className="max-w-xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-civic">Vetri · TVK Sembakkam</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-civic">
+              Vetri · TVK Sembakkam
+            </p>
             <h1 className="font-display mt-4 text-3xl leading-tight sm:text-4xl lg:text-5xl">
               File a civic complaint.
               <span className="block text-civic">Track it until it is fixed.</span>
             </h1>
             <p className="mt-4 max-w-xl text-base text-navy-muted sm:text-lg">
-              Roads, garbage, streetlights, water, drainage — report local issues and follow the status online.
+              Roads, garbage, streetlights, water, drainage — report local issues and follow the
+              status online.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 to="/file"
                 search={{}}
-                className="inline-flex min-h-11 items-center gap-2 rounded-md bg-civic px-5 py-2.5 text-sm font-bold text-civic-foreground"
+                className="inline-flex min-h-11 items-center gap-2 rounded-md bg-civic px-5 py-2.5 text-sm font-bold text-civic-foreground shadow-sm"
               >
                 <FilePlus2 className="h-4 w-4" />
                 File a complaint
@@ -147,16 +155,6 @@ function Index() {
                 Track status
               </Link>
             </div>
-          </div>
-          <div className="relative hidden lg:block">
-            <div className="overflow-hidden rounded-2xl border border-navy-foreground/15 shadow-2xl">
-              <img
-                src={heroImage}
-                alt="Thalapathy Vijay"
-                className="aspect-[16/10] w-full object-cover object-center"
-              />
-            </div>
-            <p className="mt-2 text-center text-xs text-navy-muted">Thalapathy Vijay</p>
           </div>
         </div>
       </section>
