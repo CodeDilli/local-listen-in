@@ -111,16 +111,16 @@ function Index() {
   return (
     <div>
       <section className="relative overflow-hidden bg-navy text-navy-foreground">
-        {/* Full-bleed portrait background (all screen sizes) */}
+        {/* Full-bleed portrait background — no separate right-side photo */}
         <img
           src={heroImage}
           alt=""
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[center_20%]"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[70%_15%] sm:object-[center_10%]"
           aria-hidden
         />
-        {/* Red wash so text stays readable over the photo */}
+        {/* Red wash: strong on the left for text, lighter on the right so photo shows */}
         <div
-          className="absolute inset-0 bg-gradient-to-r from-navy/95 via-navy/85 to-navy/55"
+          className="absolute inset-0 bg-gradient-to-r from-navy/95 via-navy/80 to-navy/40"
           aria-hidden
         />
         <div className="texture-grid absolute inset-0 opacity-30" aria-hidden />
