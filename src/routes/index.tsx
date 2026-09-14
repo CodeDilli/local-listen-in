@@ -17,7 +17,6 @@ import {
   MapPin,
   Tag,
 } from "lucide-react";
-import { heroPortraitDataUrl as heroImage } from "../assets/hero-portrait";
 import {
   listComplaints,
   getCachedComplaints,
@@ -111,18 +110,6 @@ function Index() {
   return (
     <div>
       <section className="relative overflow-hidden bg-navy text-navy-foreground">
-        {/* Full-bleed portrait background — no separate right-side photo */}
-        <img
-          src={heroImage}
-          alt=""
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[70%_15%] sm:object-[center_10%]"
-          aria-hidden
-        />
-        {/* Red wash: strong on the left for text, lighter on the right so photo shows */}
-        <div
-          className="absolute inset-0 bg-gradient-to-r from-navy/95 via-navy/80 to-navy/40"
-          aria-hidden
-        />
         <div className="texture-grid absolute inset-0 opacity-30" aria-hidden />
         <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
           <div className="max-w-xl">
