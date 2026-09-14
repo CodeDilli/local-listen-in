@@ -8,10 +8,11 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { Landmark, FilePlus2, Search, Phone, Mail, Clock } from "lucide-react";
+import { FilePlus2, Search, Phone, Mail, Clock } from "lucide-react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { brandLogoDataUrl } from "../assets/brand-logo";
 
 function NotFoundComponent() {
   return (
@@ -67,14 +68,22 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+function BrandMark({ className = "h-9 w-9" }: { className?: string }) {
+  return (
+    <img
+      src={brandLogoDataUrl}
+      alt="Vetri Sembakkam"
+      className={`${className} shrink-0 rounded-md object-cover object-top ring-1 ring-navy-foreground/20`}
+    />
+  );
+}
+
 function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-navy-foreground/10 bg-navy text-navy-foreground">
       <div className="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-2 px-3 py-2 sm:min-h-16 sm:px-6">
         <Link to="/" className="flex min-w-0 items-center gap-2 sm:gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-civic text-civic-foreground">
-            <Landmark className="h-5 w-5" />
-          </span>
+          <BrandMark />
           <span className="font-display truncate text-base tracking-tight sm:text-lg">
             VETRI <span className="text-civic">SEMBAKKAM</span>
           </span>
@@ -109,9 +118,7 @@ function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-civic text-civic-foreground">
-              <Landmark className="h-5 w-5" />
-            </span>
+            <BrandMark />
             <span className="font-display text-lg">
               VETRI <span className="text-civic">SEMBAKKAM</span>
             </span>
