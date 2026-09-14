@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { z } from "zod";
 import { createComplaint } from "@/lib/complaints";
-import { brandLogoDataUrl } from "../assets/brand-logo";
+import { vijaySarathPhotoDataUrl } from "../assets/vijay-sarath-photo";
 
 export const Route = createFileRoute("/file")({
   validateSearch: (search: Record<string, unknown>): { category?: string } =>
@@ -171,13 +171,13 @@ function FileComplaint() {
       <div className="max-w-xl">
         <div className="mb-5 flex items-center gap-3">
           <img
-            src={brandLogoDataUrl}
-            alt="CM of Tamil Nadu"
-            className="h-14 w-14 shrink-0 rounded-full border-2 border-card object-cover object-top sm:h-16 sm:w-16"
+            src={vijaySarathPhotoDataUrl}
+            alt="Thalapathy Vijay and Minister Sarathkumar"
+            className="h-14 w-24 shrink-0 rounded-lg border-2 border-card object-cover object-center sm:h-16 sm:w-28"
           />
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">Vetri · TVK Sembakkam</p>
-            <p className="text-sm text-muted-foreground">CM of Tamil Nadu · M.K. Stalin</p>
+            <p className="text-sm text-muted-foreground">CM of Tamil Nadu · Minister Sarathkumar</p>
           </div>
         </div>
         <h1 className="font-display text-3xl text-foreground sm:text-4xl">File a complaint</h1>
