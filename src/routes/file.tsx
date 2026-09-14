@@ -173,7 +173,7 @@ function FileComplaint() {
           <img
             src={vijaySarathPhotoDataUrl}
             alt="Thalapathy Vijay and Minister Sarathkumar"
-            className="h-14 w-24 shrink-0 rounded-lg border-2 border-card object-cover object-center sm:h-16 sm:w-28"
+            className="h-16 w-28 shrink-0 rounded-lg border-2 border-card object-cover object-top sm:h-20 sm:w-36"
           />
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">Vetri · TVK Sembakkam</p>
