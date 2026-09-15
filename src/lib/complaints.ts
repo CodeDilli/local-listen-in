@@ -6,7 +6,7 @@
  */
 
 import { getSupabaseConfigStatus } from "@/integrations/supabase/client";
-import { notifyAdminNewComplaint } from "@/lib/notify-admin";
+import { notifyComplaintFiled, notifyCitizenStatus } from "@/lib/notify";
 
 export type Complaint = {
   reference_code: string;
@@ -290,11 +290,10 @@ export async function createComplaint(data: NewComplaint): Promise<Complaint> {
         status: "submitted",
         admin_notes: null,
       };
-      // Insert without .select() — anon cannot SELECT the full complaints table
       const { error } = await supabase.from("complaints").insert(row);
       if (!error) {
         upsertLocal(local);
-        void notifyAdminNewComplaint(local).catch(() => {});
+        void notifyComplaintFiled(local).catch(() => {});
         return local;
       }
       console.error("[complaints] supabase insert error", error);
@@ -311,12 +310,12 @@ export async function createComplaint(data: NewComplaint): Promise<Complaint> {
   const fromGas = await gasCreate(local);
   if (fromGas) {
     upsertLocal(fromGas);
-    void notifyAdminNewComplaint(fromGas).catch(() => {});
+    void notifyComplaintFiled(fromGas).catch(() => {});
     return fromGas;
   }
 
   upsertLocal(local);
-  void notifyAdminNewComplaint(local).catch(() => {});
+  void notifyComplaintFiled(local).catch(() => {});
   return local;
 }
 
@@ -356,10 +355,6 @@ export async function findComplaint(referenceCode: string): Promise<Complaint | 
   return readLocal().find((c) => c.reference_code === code) ?? null;
 }
 
-/**
- * Push browser-only complaints up to Supabase so phone and laptop stay in sync.
- * Safe to call often — skips rows that already exist in the cloud.
- */
 async function syncLocalOnlyToCloud(local: Complaint[], cloud: Complaint[]): Promise<Complaint[]> {
   if (!isCloudConfigured() || local.length === 0) return [];
   const cloudCodes = new Set(cloud.map((c) => c.reference_code));
@@ -384,8 +379,6 @@ async function syncLocalOnlyToCloud(local: Complaint[], cloud: Complaint[]): Pro
           status: row.status || "submitted",
           admin_notes: row.admin_notes || null,
         };
-        // Anon cannot SELECT the full complaints table (privacy view only) —
-        // upsert without .select() and keep the local row on success.
         const { error } = await supabase
           .from("complaints")
           .upsert(payload, { onConflict: "reference_code" });
@@ -404,27 +397,20 @@ async function syncLocalOnlyToCloud(local: Complaint[], cloud: Complaint[]): Pro
   return uploaded;
 }
 
-/**
- * Shared list: Supabase is source of truth when configured.
- * Local-only rows (e.g. filed on phone) are pushed up so laptop sees them.
- */
 export async function listComplaints(): Promise<Complaint[]> {
   const cached = readLocal();
 
   if (isCloudConfigured()) {
     let cloud = await fetchCloudPublic();
-    // Upload any phone/laptop-only rows so every device shares the same data
     const uploaded = await syncLocalOnlyToCloud(cached, cloud);
     if (uploaded.length > 0) {
       cloud = mergeByCode(cloud, uploaded);
     }
-    // Skip broken/slow GAS when cloud is available — keeps load fast and consistent
     const merged = mergeByCode(cloud, cached);
     if (merged.length > 0) writeLocal(merged);
     return merged;
   }
 
-  // No Supabase: fall back to GAS + local (device-specific)
   const gas = await gasList();
   const merged = mergeByCode(gas, cached);
   if (merged.length > 0) writeLocal(merged);
@@ -490,6 +476,7 @@ export async function updateComplaintStatus(
           updated_at: now,
         };
         upsertLocal(updated);
+        void notifyCitizenStatus(updated, status).catch(() => {});
         return updated;
       }
     } catch (e) {
@@ -500,6 +487,7 @@ export async function updateComplaintStatus(
   const fromGas = await gasUpdate(code, status, adminNotes);
   if (fromGas) {
     upsertLocal(fromGas);
+    void notifyCitizenStatus(fromGas, status).catch(() => {});
     return fromGas;
   }
 
@@ -514,6 +502,7 @@ export async function updateComplaintStatus(
   };
   all[idx] = updated;
   writeLocal(all);
+  void notifyCitizenStatus(updated, status).catch(() => {});
   return updated;
 }
 
