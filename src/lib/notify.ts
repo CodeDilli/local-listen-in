@@ -6,7 +6,16 @@
  */
 
 import type { Complaint, ComplaintStatus } from "@/lib/complaints";
-import { statusLabel } from "@/lib/complaints";
+
+function statusLabel(status: string): string {
+  const map: Record<string, string> = {
+    submitted: "Pending",
+    in_progress: "In Progress",
+    resolved: "Resolved",
+    rejected: "Rejected",
+  };
+  return map[status] ?? status;
+}
 
 const STAFF_EMAIL = "g.dilliganesh99@gmail.com";
 const SITE = "https://local-listen-in.vercel.app";
