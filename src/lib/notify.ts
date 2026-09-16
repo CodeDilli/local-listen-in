@@ -17,7 +17,8 @@ function statusLabel(status: string): string {
   return map[status] ?? status;
 }
 
-const STAFF_EMAIL = "g.dilliganesh99@gmail.com";
+/** Admin inbox — receives every new complaint */
+const STAFF_EMAIL = "vetrisembakkam@gmail.com";
 const SITE = "https://local-listen-in.vercel.app";
 const HELPLINE = "7094412177";
 
@@ -85,18 +86,25 @@ function trackUrl(code: string): string {
 export async function notifyAdminNewComplaint(complaint: Complaint): Promise<void> {
   const code = complaint.reference_code;
   const subject = `New complaint ${code} — ${complaint.title}`;
+
+  // Clear fields for the email table (FormSubmit _template: table)
+  const problem = [complaint.title, complaint.description].filter(Boolean).join(" — ");
+  const area = [complaint.location, complaint.ward].filter(Boolean).join(" · ") || "—";
+  const citizenName = complaint.contact_name?.trim() || "—";
+  const mobile = complaint.contact_phone?.trim() || "—";
+  const citizenEmail = complaint.contact_email?.trim() || "—";
+
   const message = [
     `A citizen filed a new complaint on Vetri Sembakkam.`,
     ``,
     `Reference: ${code}`,
-    `Title: ${complaint.title}`,
+    `Problem: ${problem}`,
     `Category: ${complaint.category}`,
-    `Location: ${complaint.location}${complaint.ward ? ` (${complaint.ward})` : ""}`,
-    `Description: ${complaint.description}`,
+    `Area / location: ${area}`,
     ``,
-    `Citizen: ${complaint.contact_name || "—"}`,
-    `Email: ${complaint.contact_email || "—"}`,
-    `Phone: ${complaint.contact_phone || "—"}`,
+    `Filed by: ${citizenName}`,
+    `Mobile: ${mobile}`,
+    `Email: ${citizenEmail}`,
     ``,
     `Admin panel: ${SITE}/admin`,
     `Track: ${trackUrl(code)}`,
@@ -105,16 +113,20 @@ export async function notifyAdminNewComplaint(complaint: Complaint): Promise<voi
   await Promise.allSettled([
     formSubmit(STAFF_EMAIL, {
       _subject: subject,
-      name: complaint.contact_name || "Citizen",
-      email: complaint.contact_email || STAFF_EMAIL,
-      message,
-      reference: code,
+      name: citizenName,
+      email: citizenEmail !== "—" ? citizenEmail : STAFF_EMAIL,
+      // Explicit columns the admin asked for
+      problem,
+      area,
+      filed_by: citizenName,
+      mobile,
       category: complaint.category,
-      location: complaint.location,
+      reference: code,
+      message,
     }),
     ntfyPush(
       `New complaint ${code}`,
-      `${complaint.title}\n${complaint.category} · ${complaint.location}\n${SITE}/admin`,
+      `${complaint.title}\n${area}\n${citizenName} · ${mobile}\n${SITE}/admin`,
       `${SITE}/admin`
     ),
   ]);
