@@ -3,6 +3,8 @@
  * - Email staff (vetrisembakkam@gmail.com) when a complaint is filed
  * - Email citizen confirmation + status updates
  * - Optional phone push via ntfy.sh
+ *
+ * Admin FormSubmit form ID (from activation email) — more reliable than naked email.
  */
 
 import type { Complaint, ComplaintStatus } from "@/lib/complaints";
@@ -17,8 +19,10 @@ function statusLabel(status: string): string {
   return map[status] ?? status;
 }
 
-/** Admin inbox — receives every new complaint */
+/** Shown in email body / citizen replies */
 const STAFF_EMAIL = "vetrisembakkam@gmail.com";
+/** FormSubmit activated form ID for vetrisembakkam@gmail.com on this site */
+const STAFF_FORMSUBMIT_ID = "46b3955899888c75602c195defab32732";
 const SITE = "https://local-listen-in.vercel.app";
 const HELPLINE = "7094412177";
 
@@ -31,7 +35,7 @@ function ntfyTopic(): string {
   return topic || "vetri-sembakkam-complaints";
 }
 
-/** FormSubmit AJAX — works without a backend. First use may need inbox confirmation. */
+/** FormSubmit AJAX — works without a backend. Staff form must be activated once. */
 async function formSubmit(
   to: string,
   payload: Record<string, string>
@@ -47,6 +51,7 @@ async function formSubmit(
         ...payload,
         _template: "table",
         _captcha: "false",
+        _honey: "",
       }),
     });
     if (!res.ok) {
@@ -87,36 +92,42 @@ export async function notifyAdminNewComplaint(complaint: Complaint): Promise<voi
   const code = complaint.reference_code;
   const subject = `New complaint ${code} — ${complaint.title}`;
 
-  // Clear fields for the email table (FormSubmit _template: table)
-  const problem = [complaint.title, complaint.description].filter(Boolean).join(" — ");
+  const problemTitle = complaint.title || "—";
+  const problemDetail = complaint.description || "—";
   const area = [complaint.location, complaint.ward].filter(Boolean).join(" · ") || "—";
   const citizenName = complaint.contact_name?.trim() || "—";
   const mobile = complaint.contact_phone?.trim() || "—";
   const citizenEmail = complaint.contact_email?.trim() || "—";
 
   const message = [
-    `A citizen filed a new complaint on Vetri Sembakkam.`,
+    `NEW COMPLAINT — Vetri Sembakkam`,
     ``,
-    `Reference: ${code}`,
-    `Problem: ${problem}`,
+    `Tracking code: ${code}`,
+    ``,
+    `PROBLEM`,
+    `Title: ${problemTitle}`,
+    `Details: ${problemDetail}`,
     `Category: ${complaint.category}`,
-    `Area / location: ${area}`,
     ``,
-    `Filed by: ${citizenName}`,
+    `AREA`,
+    `${area}`,
+    ``,
+    `WHO FILED`,
+    `Name: ${citizenName}`,
     `Mobile: ${mobile}`,
     `Email: ${citizenEmail}`,
     ``,
-    `Admin panel: ${SITE}/admin`,
-    `Track: ${trackUrl(code)}`,
+    `Open admin: ${SITE}/admin`,
+    `Track link: ${trackUrl(code)}`,
   ].join("\n");
 
   await Promise.allSettled([
-    formSubmit(STAFF_EMAIL, {
+    // Use activated FormSubmit form ID (not naked email) so real data is delivered
+    formSubmit(STAFF_FORMSUBMIT_ID, {
       _subject: subject,
       name: citizenName,
       email: citizenEmail !== "—" ? citizenEmail : STAFF_EMAIL,
-      // Explicit columns the admin asked for
-      problem,
+      problem: `${problemTitle} — ${problemDetail}`,
       area,
       filed_by: citizenName,
       mobile,
@@ -126,7 +137,7 @@ export async function notifyAdminNewComplaint(complaint: Complaint): Promise<voi
     }),
     ntfyPush(
       `New complaint ${code}`,
-      `${complaint.title}\n${area}\n${citizenName} · ${mobile}\n${SITE}/admin`,
+      `${problemTitle}\n${area}\n${citizenName} · ${mobile}\n${SITE}/admin`,
       `${SITE}/admin`
     ),
   ]);
