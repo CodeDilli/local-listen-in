@@ -1,6 +1,6 @@
 /**
  * Notifications for Vetri Sembakkam complaints.
- * - Email staff when a complaint is filed
+ * - Email staff (vetrisembakkam@gmail.com) when a complaint is filed
  * - Email citizen confirmation + status updates
  * - Optional phone push via ntfy.sh
  */
