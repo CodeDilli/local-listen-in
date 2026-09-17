@@ -1,7 +1,7 @@
 /**
  * Notifications for Vetri Sembakkam complaints.
- * Admin email: Google Apps Script MailApp → vetrisembakkam@gmail.com
- * (FormSubmit activation links often fail; GAS is reliable.)
+ * Admin gets email at vetrisembakkam@gmail.com via ntfy.sh Email header
+ * (no FormSubmit / no Google Apps Script setup required).
  */
 
 import type { Complaint, ComplaintStatus } from "@/lib/complaints";
@@ -20,12 +20,6 @@ const STAFF_EMAIL = "vetrisembakkam@gmail.com";
 const SITE = "https://local-listen-in.vercel.app";
 const HELPLINE = "7094412177";
 
-/** Same Apps Script as complaints store — must include action "notify_admin" (see docs in repo). */
-const GAS_URL =
-  (typeof import.meta !== "undefined" &&
-    (import.meta as { env?: Record<string, string> }).env?.["VITE_COMPLAINTS_API_URL"]) ||
-  "https://script.google.com/macros/s/AKfycbxJDsGsXaOb_8R3Bb3wPvSStYV_EsB2v8Jgn07la_-wBzLB97BPrhUHt5G_Qbv0EHFaJg/exec";
-
 function ntfyTopic(): string {
   const fromEnv =
     (typeof import.meta !== "undefined" &&
@@ -35,28 +29,41 @@ function ntfyTopic(): string {
   return topic || "vetri-sembakkam-complaints";
 }
 
-async function gasNotifyAdmin(payload: Record<string, string>): Promise<boolean> {
+/**
+ * Push to ntfy + email to admin Gmail.
+ * ntfy.sh supports Email header: delivers a real email to that address.
+ * https://docs.ntfy.sh/publish/#e-mail-notifications
+ */
+async function ntfyNotifyAdmin(opts: {
+  title: string;
+  body: string;
+  click?: string;
+}): Promise<boolean> {
+  const topic = ntfyTopic();
   try {
-    const res = await fetch(GAS_URL, {
+    const res = await fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "notify_admin", ...payload }),
+      headers: {
+        Title: opts.title,
+        Priority: "high",
+        Tags: "warning,clipboard",
+        Email: STAFF_EMAIL,
+        ...(opts.click ? { Click: opts.click } : {}),
+      },
+      body: opts.body,
     });
-    const text = await res.text();
-    try {
-      const json = JSON.parse(text) as { success?: boolean; ok?: boolean };
-      return json.success === true || json.ok === true;
-    } catch {
-      // GAS may return empty on redirect — treat 2xx as ok attempt
-      return res.ok;
+    if (!res.ok) {
+      console.warn("[notify] ntfy", res.status, await res.text().catch(() => ""));
+      return false;
     }
+    return true;
   } catch (e) {
-    console.warn("[notify] gas email failed", e);
+    console.warn("[notify] ntfy failed", e);
     return false;
   }
 }
 
-/** Backup: FormSubmit (only works after successful ACTIVATE FORM). */
+/** Optional citizen email via FormSubmit (best-effort; may need activation per address). */
 async function formSubmit(
   to: string,
   payload: Record<string, string>
@@ -85,32 +92,13 @@ async function formSubmit(
   }
 }
 
-async function ntfyPush(title: string, body: string, click?: string): Promise<void> {
-  const topic = ntfyTopic();
-  try {
-    await fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
-      method: "POST",
-      headers: {
-        Title: title,
-        Priority: "high",
-        Tags: "loudspeaker,clipboard",
-        ...(click ? { Click: click } : {}),
-      },
-      body,
-    });
-  } catch (e) {
-    console.warn("[notify] ntfy failed", e);
-  }
-}
-
 function trackUrl(code: string): string {
   return `${SITE}/track?ref=${encodeURIComponent(code)}`;
 }
 
-/** Staff: new complaint email + phone push */
+/** Staff: email + push when a new complaint is filed */
 export async function notifyAdminNewComplaint(complaint: Complaint): Promise<void> {
   const code = complaint.reference_code;
-  const subject = `New complaint ${code} — ${complaint.title}`;
 
   const problemTitle = complaint.title || "—";
   const problemDetail = complaint.description || "—";
@@ -119,7 +107,7 @@ export async function notifyAdminNewComplaint(complaint: Complaint): Promise<voi
   const mobile = complaint.contact_phone?.trim() || "—";
   const citizenEmail = complaint.contact_email?.trim() || "—";
 
-  const message = [
+  const body = [
     `NEW COMPLAINT — Vetri Sembakkam`,
     ``,
     `Tracking code: ${code}`,
@@ -130,50 +118,25 @@ export async function notifyAdminNewComplaint(complaint: Complaint): Promise<voi
     `Category: ${complaint.category}`,
     ``,
     `AREA`,
-    `${area}`,
+    area,
     ``,
     `WHO FILED`,
     `Name: ${citizenName}`,
     `Mobile: ${mobile}`,
     `Email: ${citizenEmail}`,
     ``,
-    `Open admin: ${SITE}/admin`,
-    `Track link: ${trackUrl(code)}`,
+    `Admin: ${SITE}/admin`,
+    `Track: ${trackUrl(code)}`,
   ].join("\n");
 
-  await Promise.allSettled([
-    gasNotifyAdmin({
-      to: STAFF_EMAIL,
-      subject,
-      message,
-      problem: `${problemTitle} — ${problemDetail}`,
-      area,
-      filed_by: citizenName,
-      mobile,
-      category: complaint.category,
-      reference: code,
-    }),
-    formSubmit(STAFF_EMAIL, {
-      _subject: subject,
-      name: citizenName,
-      email: citizenEmail !== "—" ? citizenEmail : STAFF_EMAIL,
-      problem: `${problemTitle} — ${problemDetail}`,
-      area,
-      filed_by: citizenName,
-      mobile,
-      category: complaint.category,
-      reference: code,
-      message,
-    }),
-    ntfyPush(
-      `New complaint ${code}`,
-      `${problemTitle}\n${area}\n${citizenName} · ${mobile}\n${SITE}/admin`,
-      `${SITE}/admin`
-    ),
-  ]);
+  await ntfyNotifyAdmin({
+    title: `New complaint ${code} — ${problemTitle}`,
+    body,
+    click: `${SITE}/admin`,
+  });
 }
 
-/** Citizen: confirmation after filing */
+/** Citizen: confirmation after filing (best-effort) */
 export async function notifyCitizenFiled(complaint: Complaint): Promise<void> {
   const email = (complaint.contact_email || "").trim();
   if (!email || !email.includes("@") || email.endsWith(".invalid")) return;
@@ -208,7 +171,7 @@ export async function notifyCitizenFiled(complaint: Complaint): Promise<void> {
   });
 }
 
-/** Citizen: status changed by staff */
+/** Citizen: status changed by staff (best-effort) */
 export async function notifyCitizenStatus(
   complaint: Complaint,
   status: ComplaintStatus
