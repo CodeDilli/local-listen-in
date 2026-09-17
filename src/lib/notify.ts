@@ -1,26 +1,14 @@
 /**
  * Notifications for Vetri Sembakkam complaints.
- * Admin email → vetrisembakkam@gmail.com via Web3Forms (reliable, no broken activation links).
- * Set VITE_WEB3FORMS_ACCESS_KEY on Vercel after creating a free key at https://web3forms.com
+ * Admin email → vetrisembakkam@gmail.com via Web3Forms.
+ * Set VITE_WEB3FORMS_ACCESS_KEY on Vercel (free key from https://web3forms.com).
  */
 
 import type { Complaint, ComplaintStatus } from "@/lib/complaints";
 
-function statusLabel(status: string): string {
-  const map: Record<string, string> = {
-    submitted: "Pending",
-    in_progress: "In Progress",
-    resolved: "Resolved",
-    rejected: "Rejected",
-  };
-  return map[status] ?? status;
-}
-
 const STAFF_EMAIL = "vetrisembakkam@gmail.com";
 const SITE = "https://local-listen-in.vercel.app";
-const HELPLINE = "7094412177";
 
-/** Free access key from https://web3forms.com (email verified to STAFF_EMAIL). */
 function web3formsKey(): string {
   const fromEnv =
     (typeof import.meta !== "undefined" &&
@@ -57,7 +45,7 @@ async function web3formsSend(fields: Record<string, string>): Promise<boolean> {
         ...fields,
       }),
     });
-    const data = (await res.json().catch(() => ({}))) as { success?: boolean; message?: string };
+    const data = (await res.json().catch(() => ({}))) as { success?: boolean };
     if (!res.ok || data.success === false) {
       console.warn("[notify] web3forms", res.status, data);
       return false;
@@ -145,35 +133,20 @@ export async function notifyAdminNewComplaint(complaint: Complaint): Promise<voi
   ]);
 }
 
-/** Citizen: confirmation after filing (via Web3Forms reply-to style message to their inbox is not supported without key per user — skip if no key) */
-export async function notifyCitizenFiled(complaint: Complaint): Promise<void> {
-  const email = (complaint.contact_email || "").trim();
-  if (!email || !email.includes("@") || email.endsWith(".invalid")) return;
-  // Citizen confirmation only if Web3Forms is configured (sends from their system to citizen)
-  // Web3Forms always delivers to the key owner's email — so we skip citizen-only mail here.
-  void complaint;
+export async function notifyCitizenFiled(_complaint: Complaint): Promise<void> {
+  // Admin email is the priority; citizen mail needs a separate mail provider.
 }
 
-/** Citizen: status changed by staff */
 export async function notifyCitizenStatus(
-  complaint: Complaint,
-  status: ComplaintStatus
+  _complaint: Complaint,
+  _status: ComplaintStatus
 ): Promise<void> {
-  void complaint;
-  void status;
-  // Same limitation as notifyCitizenFiled — admin email path is the priority.
+  // Admin email is the priority.
 }
 
-/** Called after a successful file — staff (+ optional citizen) */
 export async function notifyComplaintFiled(complaint: Complaint): Promise<void> {
   await Promise.allSettled([
     notifyAdminNewComplaint(complaint),
     notifyCitizenFiled(complaint),
   ]);
 }
-
-// silence unused in citizen stubs if tree-shaken differently
-void statusLabel;
-void HELPLINE;
-void formSubmitPlaceholder;
-function formSubmitPlaceholder() {}
