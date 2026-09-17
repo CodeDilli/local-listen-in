@@ -1,7 +1,6 @@
 /**
  * Notifications for Vetri Sembakkam complaints.
  * Admin email → vetrisembakkam@gmail.com via Web3Forms.
- * Set VITE_WEB3FORMS_ACCESS_KEY on Vercel (free key from https://web3forms.com).
  */
 
 import type { Complaint, ComplaintStatus } from "@/lib/complaints";
@@ -9,12 +8,15 @@ import type { Complaint, ComplaintStatus } from "@/lib/complaints";
 const STAFF_EMAIL = "vetrisembakkam@gmail.com";
 const SITE = "https://local-listen-in.vercel.app";
 
+/** Web3Forms access key (client-side keys are designed to be public). */
+const WEB3FORMS_ACCESS_KEY = "982d5360-3473-4fa2-90bc-d1048038bec4";
+
 function web3formsKey(): string {
   const fromEnv =
     (typeof import.meta !== "undefined" &&
       (import.meta as { env?: Record<string, string> }).env?.["VITE_WEB3FORMS_ACCESS_KEY"]) ||
     "";
-  return String(fromEnv).trim();
+  return String(fromEnv).trim() || WEB3FORMS_ACCESS_KEY;
 }
 
 function ntfyTopic(): string {
@@ -29,7 +31,7 @@ function ntfyTopic(): string {
 async function web3formsSend(fields: Record<string, string>): Promise<boolean> {
   const access_key = web3formsKey();
   if (!access_key) {
-    console.warn("[notify] VITE_WEB3FORMS_ACCESS_KEY not set — skip email");
+    console.warn("[notify] Web3Forms access key missing — skip email");
     return false;
   }
   try {
@@ -134,7 +136,7 @@ export async function notifyAdminNewComplaint(complaint: Complaint): Promise<voi
 }
 
 export async function notifyCitizenFiled(_complaint: Complaint): Promise<void> {
-  // Admin email is the priority; citizen mail needs a separate mail provider.
+  // Admin email is the priority.
 }
 
 export async function notifyCitizenStatus(
