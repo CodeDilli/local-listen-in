@@ -1,10 +1,7 @@
 /**
  * Notifications for Vetri Sembakkam complaints.
- * - Email staff (vetrisembakkam@gmail.com) when a complaint is filed
- * - Email citizen confirmation + status updates
- * - Optional phone push via ntfy.sh
- *
- * Admin FormSubmit form ID (from activation email) — more reliable than naked email.
+ * Admin email: Google Apps Script MailApp → vetrisembakkam@gmail.com
+ * (FormSubmit activation links often fail; GAS is reliable.)
  */
 
 import type { Complaint, ComplaintStatus } from "@/lib/complaints";
@@ -19,12 +16,15 @@ function statusLabel(status: string): string {
   return map[status] ?? status;
 }
 
-/** Shown in email body / citizen replies */
 const STAFF_EMAIL = "vetrisembakkam@gmail.com";
-/** FormSubmit activated form ID for vetrisembakkam@gmail.com on this site */
-const STAFF_FORMSUBMIT_ID = "46b3955899888c75602c195defab32732";
 const SITE = "https://local-listen-in.vercel.app";
 const HELPLINE = "7094412177";
+
+/** Same Apps Script as complaints store — must include action "notify_admin" (see docs in repo). */
+const GAS_URL =
+  (typeof import.meta !== "undefined" &&
+    (import.meta as { env?: Record<string, string> }).env?.["VITE_COMPLAINTS_API_URL"]) ||
+  "https://script.google.com/macros/s/AKfycbxJDsGsXaOb_8R3Bb3wPvSStYV_EsB2v8Jgn07la_-wBzLB97BPrhUHt5G_Qbv0EHFaJg/exec";
 
 function ntfyTopic(): string {
   const fromEnv =
@@ -35,7 +35,28 @@ function ntfyTopic(): string {
   return topic || "vetri-sembakkam-complaints";
 }
 
-/** FormSubmit AJAX — works without a backend. Staff form must be activated once. */
+async function gasNotifyAdmin(payload: Record<string, string>): Promise<boolean> {
+  try {
+    const res = await fetch(GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "notify_admin", ...payload }),
+    });
+    const text = await res.text();
+    try {
+      const json = JSON.parse(text) as { success?: boolean; ok?: boolean };
+      return json.success === true || json.ok === true;
+    } catch {
+      // GAS may return empty on redirect — treat 2xx as ok attempt
+      return res.ok;
+    }
+  } catch (e) {
+    console.warn("[notify] gas email failed", e);
+    return false;
+  }
+}
+
+/** Backup: FormSubmit (only works after successful ACTIVATE FORM). */
 async function formSubmit(
   to: string,
   payload: Record<string, string>
@@ -51,7 +72,6 @@ async function formSubmit(
         ...payload,
         _template: "table",
         _captcha: "false",
-        _honey: "",
       }),
     });
     if (!res.ok) {
@@ -122,8 +142,18 @@ export async function notifyAdminNewComplaint(complaint: Complaint): Promise<voi
   ].join("\n");
 
   await Promise.allSettled([
-    // Use activated FormSubmit form ID (not naked email) so real data is delivered
-    formSubmit(STAFF_FORMSUBMIT_ID, {
+    gasNotifyAdmin({
+      to: STAFF_EMAIL,
+      subject,
+      message,
+      problem: `${problemTitle} — ${problemDetail}`,
+      area,
+      filed_by: citizenName,
+      mobile,
+      category: complaint.category,
+      reference: code,
+    }),
+    formSubmit(STAFF_EMAIL, {
       _subject: subject,
       name: citizenName,
       email: citizenEmail !== "—" ? citizenEmail : STAFF_EMAIL,
