@@ -192,7 +192,7 @@ function FileComplaint() {
           No login needed. Staff will update the status and you can follow it online.
         </p>
         <p className="mt-3 text-xs text-muted-foreground">
-          CM of Tamil Nadu · Minister Sarathkumar · Helpline 7094412177
+          CM of Tamil Nadu · Minister Sarathkumar · Helpline 1800-7574-1234
         </p>
       </div>
 
