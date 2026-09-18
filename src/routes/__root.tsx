@@ -157,9 +157,6 @@ function SiteFooter() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-navy-foreground/10 px-4 py-4 text-center text-xs leading-relaxed text-navy-muted">
-        © 2026 Vetri · TVK Sembakkam · Built & developed by Dilli Ganesh
-      </div>
     </footer>
   );
 }
